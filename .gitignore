@@ -11,3 +11,7 @@ Cargo.lock
 
 # idea
 .idea/
+*.iml
+
+#mac
+.DS_Store
