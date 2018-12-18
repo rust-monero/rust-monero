@@ -7,7 +7,10 @@ edition = "2018"
 [workspace]
 members = [
     "src/db",
+    "src/crypto",
+    "src/cryptonote_basic"
 ]
 
 [dependencies]
 lmdb = "0.8.0"
+db = {path = "src/db"}

@@ -1,5 +1,3 @@
-pub mod blockchain_db;
-
 #[cfg(test)]
 mod tests {
     #[test]
