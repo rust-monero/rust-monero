@@ -1,6 +1,6 @@
 use xmr_crypto::crypto::PublicKey;
 
-struct TxOutToScript {
+pub struct TxOutToScript {
     keys: Vec<PublicKey>,
     script: Vec<u8>
 }
