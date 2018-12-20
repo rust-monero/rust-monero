@@ -5,3 +5,4 @@ authors = ["LINE <769483043@qq.com>"]
 edition = "2018"
 
 [dependencies]
+xmr_crypto = {path = "../crypto"}
