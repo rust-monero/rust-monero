@@ -13,5 +13,5 @@ pub struct Transaction {
     //rct::rctSig rct_signatures;
 
     hash: Hash,
-    blob_size: u8
+    blob_size: usize
 }

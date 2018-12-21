@@ -12,5 +12,7 @@ mod transaction;
 
 mod block;
 
+mod account;
+
 pub struct RingSignature(pub Vec<Signature>);
 

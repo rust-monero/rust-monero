@@ -1,6 +1,10 @@
-use xmr_crypto::hash::Hash;
 use std::sync::atomic::AtomicBool;
+
+use xmr_crypto::crypto::PublicKey;
+use xmr_crypto::hash::Hash;
+
 use crate::transaction::Transaction;
+use xmr_crypto::crypto::SecretKey;
 
 pub struct BlockHeader {
     major_version: u8,
@@ -16,5 +20,15 @@ pub struct Block {
     miner_tx: Transaction,
     tx_hashes: Vec<Hash>,
     //hash cash
-    hash: Hash
+    hash: Hash,
+}
+
+pub struct AccountPublicAddress {
+    spendPublicKey: PublicKey,
+    vewPublicKey: PublicKey
+}
+
+pub struct KeyPair {
+    public_key: PublicKey,
+    secret_key: SecretKey
 }
