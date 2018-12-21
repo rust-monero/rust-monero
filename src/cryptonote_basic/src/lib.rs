@@ -10,5 +10,7 @@ mod tx_in;
 mod transaction_prefix;
 mod transaction;
 
+mod block;
+
 pub struct RingSignature(pub Vec<Signature>);
 
