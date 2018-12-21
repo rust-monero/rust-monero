@@ -16,12 +16,16 @@ mod tx_out_to_script;
 mod tx_out_to_script_hash;
 mod tx_out_to_key;
 mod tx_out_target;
+mod tx_out;
 
 mod tx_in_gen;
 mod tx_in_to_script;
 mod tx_in_to_script_hash;
 mod tx_in_to_key;
 mod tx_in;
+
+mod transaction_prefix;
+mod transaction;
 
 pub struct RingSignature(pub Vec<Signature>);
 
