@@ -1,2 +1,2 @@
-trait BlockChainDB {
+pub trait BlockChainDB {
 }

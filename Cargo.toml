@@ -8,11 +8,13 @@ edition = "2018"
 members = [
     "src/db",
     "src/crypto",
-    "src/cryptonote_basic"
+    "src/cryptonote_basic",
+    "src/device"
 ]
 
 [dependencies]
 lmdb = "0.8.0"
-db = {path = "src/db"}
+xmr_db = {path = "src/db"}
 xmr_crypto = {path = "src/crypto"}
 xmr_cryptonote_basic = {path = "src/cryptonote_basic"}
+xmr_device = {path = "src/device"}

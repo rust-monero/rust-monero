@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 xmr_crypto = {path = "../crypto"}
+xmr_device = {path = "../device"}
+xmr_db = {path = "../db"}

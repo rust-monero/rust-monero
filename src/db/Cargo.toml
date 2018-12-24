@@ -1,5 +1,5 @@
 [package]
-name = "db"
+name = "xmr_db"
 version = "0.1.0"
 authors = ["LINE <769483043@qq.com>"]
 edition = "2018"
