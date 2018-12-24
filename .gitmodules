@@ -1,0 +1,3 @@
+[submodule "src/crypto/ccrypto"]
+	path = src/crypto/ccrypto
+	url = git@github.com:rust-monero/ccrypto.git
