@@ -22,7 +22,7 @@ struct Params {
 
 pub struct HardFork {
     //TODO with sized
-//    db: BlockChainDB,
+    db: Box<BlockChainDB>,
     forked_time: i64,
     update_time: i64,
     window_size: u64,
