@@ -14,3 +14,5 @@ members = [
 [dependencies]
 lmdb = "0.8.0"
 db = {path = "src/db"}
+xmr_crypto = {path = "src/crypto"}
+xmr_cryptonote_basic = {path = "src/cryptonote_basic"}
