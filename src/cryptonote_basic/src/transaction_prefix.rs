@@ -1,4 +1,3 @@
-use crate::TxIn;
 use crate::tx_out::TxOut;
 use crate::tx_in::TxIn;
 

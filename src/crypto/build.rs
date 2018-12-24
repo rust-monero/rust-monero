@@ -5,8 +5,8 @@ fn main() {
     let mut build = cc::Build::new();
     let tool = build.get_compiler();
     if tool.is_like_clang() || tool.is_like_gnu() {
-        build.flag_if_supported("-std=c99")
-            .flag_if_supported("-msse4.1")
+//        build.flag_if_supported("-std=c99");
+        build.flag_if_supported("-msse4.1")
             .flag_if_supported("-maes");
     }
 

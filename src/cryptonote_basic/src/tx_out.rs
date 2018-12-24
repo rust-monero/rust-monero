@@ -1,4 +1,3 @@
-use crate::TxOutTarget;
 use xmr_crypto::crypto::PublicKey;
 use xmr_crypto::hash::Hash;
 

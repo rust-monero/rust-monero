@@ -24,8 +24,8 @@ pub struct Block {
 }
 
 pub struct AccountPublicAddress {
-    spendPublicKey: PublicKey,
-    vewPublicKey: PublicKey
+    spend_public_key: PublicKey,
+    vew_public_key: PublicKey
 }
 
 pub struct KeyPair {
