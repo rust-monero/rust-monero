@@ -8,3 +8,5 @@ edition = "2018"
 xmr_crypto = {path = "../crypto"}
 xmr_device = {path = "../device"}
 xmr_db = {path = "../db"}
+
+tokio = "0.1.13"

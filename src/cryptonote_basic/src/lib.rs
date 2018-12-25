@@ -10,6 +10,11 @@ mod block;
 mod account;
 mod difficulty;
 mod hard_fork;
+mod miner;
+mod subaddress_index;
+mod tx_extra;
 
 pub struct RingSignature(pub Vec<Signature>);
+
+pub struct BlobData(pub String);
 

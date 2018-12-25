@@ -1,5 +1,7 @@
 use xmr_db::blockchain_db::BlockChainDB;
 use std::collections::vec_deque::VecDeque;
+use std::sync::Mutex;
+use std::sync::Arc;
 
 const DEFAULT_ORIGINAL_VERSION_TILL_HEIGHT: u64 = 0;
 const DEFAULT_FORKED_TIME: i64 = 31557600;
@@ -35,5 +37,5 @@ pub struct HardFork {
     current_fork_index: u32,
 
     //TODO  lock
-//    mutable epee::critical_section lock;
+    //mutable epee::critical_section lock;
 }
