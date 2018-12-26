@@ -13,6 +13,7 @@ mod hard_fork;
 mod miner;
 mod subaddress_index;
 mod tx_extra;
+mod verification_context;
 
 pub struct RingSignature(pub Vec<Signature>);
 
