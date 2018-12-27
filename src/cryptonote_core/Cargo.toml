@@ -5,3 +5,8 @@ authors = ["LINEZH <huizhaoline@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+db = {path = "../db"}
+crypto = {path = "../crypto"}
+cryptonote_basic = {path = "../cryptonote_basic"}
+
+tokio = "0.1.13"

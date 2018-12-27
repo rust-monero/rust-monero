@@ -2,18 +2,18 @@ extern crate crypto;
 
 use crypto::crypto::Signature;
 
-mod tx_out;
-mod tx_in;
-mod transaction_prefix;
-mod transaction;
-mod block;
-mod account;
-mod difficulty;
-mod hard_fork;
-mod miner;
-mod subaddress_index;
-mod tx_extra;
-mod verification_context;
+pub mod tx_out;
+pub mod tx_in;
+pub mod transaction_prefix;
+pub mod transaction;
+pub mod block;
+pub mod account;
+pub mod difficulty;
+pub mod hard_fork;
+pub mod miner;
+pub mod subaddress_index;
+pub mod tx_extra;
+pub mod verification_context;
 
 pub struct RingSignature(pub Vec<Signature>);
 

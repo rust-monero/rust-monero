@@ -1,13 +1,15 @@
 use std::sync::Arc;
-use crate::block::Block;
-use std::sync::atomic::AtomicPtr;
-use crate::difficulty::DifficultyType;
-use std::thread::Thread;
-use std::sync::Mutex;
-use crate::block::AccountPublicAddress;
-use tokio::timer::Interval;
-use crate::BlobData;
 use std::sync::atomic::AtomicBool;
+use std::sync::atomic::AtomicPtr;
+use std::sync::Mutex;
+use std::thread::Thread;
+
+use tokio::timer::Interval;
+
+use crate::BlobData;
+use crate::block::AccountPublicAddress;
+use crate::block::Block;
+use crate::difficulty::DifficultyType;
 
 const BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE: u8 = 90;
 const BACKGROUND_MINING_MIN_IDLE_THRESHOLD_PERCENTAGE: u8 = 50;
@@ -25,6 +27,12 @@ const BACKGROUND_MINING_MIN_MINER_EXTRA_SLEEP_MILLIS: u64 = 5;
 
 struct MinerConfig {
     current_extra_message_index: u64
+}
+
+pub trait MinerHandler {
+    fn handle_block_found(&self, b: &Block) -> bool;
+    fn get_block_template(&self, b: &Block, adr: AccountPublicAddress, diffic: &DifficultyType,
+                          height: u64, expected_reward: u64, ex_nonce: BlobData) -> bool;
 }
 
 struct Miner {
@@ -45,6 +53,7 @@ struct Miner {
     //epee::critical_section m_threads_lock;
     //TODO
     //i_miner_handler* m_phandler;
+    phandler: Box<MinerHandler>,
     mine_address: AccountPublicAddress,
     update_block_template_interval: Interval,
     update_merge_hr_interval: Interval,
@@ -72,7 +81,5 @@ struct Miner {
     idle_threshold: u64,
     mining_target: u64,
     miner_extra_sleep: AtomicPtr<u64>,
-    
-
 
 }

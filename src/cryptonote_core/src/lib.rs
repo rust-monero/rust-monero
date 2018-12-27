@@ -1,7 +1,9 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
+mod blockchain;
+mod tx_pool;
+
+pub struct Core {
+    test_drop_download: bool,
+    test_drop_download_height: u64,
+//    mempool
 }
+
