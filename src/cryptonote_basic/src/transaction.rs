@@ -1,7 +1,7 @@
 use crate::transaction_prefix::TransactionPrefix;
 use std::sync::atomic::AtomicBool;
-use xmr_crypto::crypto::Signature;
-use xmr_crypto::hash::Hash;
+use crypto::crypto::Signature;
+use crypto::hash::Hash;
 
 pub struct Transaction {
     prefix: TransactionPrefix,

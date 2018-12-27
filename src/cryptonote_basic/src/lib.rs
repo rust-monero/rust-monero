@@ -1,6 +1,6 @@
-extern crate xmr_crypto;
+extern crate crypto;
 
-use xmr_crypto::crypto::Signature;
+use crypto::crypto::Signature;
 
 mod tx_out;
 mod tx_in;

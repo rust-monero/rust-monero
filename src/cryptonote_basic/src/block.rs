@@ -1,10 +1,10 @@
 use std::sync::atomic::AtomicBool;
 
-use xmr_crypto::crypto::PublicKey;
-use xmr_crypto::hash::Hash;
+use crypto::crypto::PublicKey;
+use crypto::hash::Hash;
 
 use crate::transaction::Transaction;
-use xmr_crypto::crypto::SecretKey;
+use crypto::crypto::SecretKey;
 
 pub struct BlockHeader {
     major_version: u8,

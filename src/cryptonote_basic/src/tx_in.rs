@@ -1,6 +1,6 @@
-use xmr_crypto::hash::Hash;
+use crypto::hash::Hash;
 use crate::tx_out::TxOutToScriptHash;
-use xmr_crypto::crypto::KeyImage;
+use crypto::crypto::KeyImage;
 
 pub struct TxInGen {
     height: u64,

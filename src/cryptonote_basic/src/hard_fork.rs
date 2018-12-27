@@ -1,4 +1,4 @@
-use xmr_db::blockchain_db::BlockChainDB;
+use db::blockchain_db::BlockChainDB;
 use std::collections::vec_deque::VecDeque;
 use std::sync::Mutex;
 use std::sync::Arc;

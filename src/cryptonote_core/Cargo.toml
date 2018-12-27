@@ -1,5 +1,5 @@
 [package]
-name = "device"
+name = "cryptonote_core"
 version = "0.1.0"
 authors = ["LINEZH <huizhaoline@gmail.com>"]
 edition = "2018"

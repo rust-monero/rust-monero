@@ -1,7 +1,7 @@
 use crate::block::AccountPublicAddress;
-use xmr_crypto::crypto::SecretKey;
-use xmr_crypto::chacha::ChaChaIV;
-use xmr_device::Device;
+use crypto::crypto::SecretKey;
+use crypto::chacha::ChaChaIV;
+use device::Device;
 
 pub struct AccountKeys {
     account_address: AccountPublicAddress,

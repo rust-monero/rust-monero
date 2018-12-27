@@ -1,5 +1,5 @@
-use xmr_crypto::crypto::PublicKey;
-use xmr_crypto::hash::Hash;
+use crypto::crypto::PublicKey;
+use crypto::hash::Hash;
 
 const TX_EXTRA_PADDING_MAX_COUNT: u32 = 255;
 const TX_EXTRA_NONCE_MAX_COUNT: u32 = 255;

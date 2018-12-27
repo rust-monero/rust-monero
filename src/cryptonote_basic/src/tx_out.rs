@@ -1,5 +1,5 @@
-use xmr_crypto::crypto::PublicKey;
-use xmr_crypto::hash::Hash;
+use crypto::crypto::PublicKey;
+use crypto::hash::Hash;
 
 pub struct TxOutToScript {
     keys: Vec<PublicKey>,

@@ -9,12 +9,14 @@ members = [
     "src/db",
     "src/crypto",
     "src/cryptonote_basic",
+    "src/cryptonote_core",
     "src/device"
 ]
 
 [dependencies]
 lmdb = "0.8.0"
-xmr_db = {path = "src/db"}
-xmr_crypto = {path = "src/crypto"}
-xmr_cryptonote_basic = {path = "src/cryptonote_basic"}
-xmr_device = {path = "src/device"}
+db = {path = "src/db"}
+crypto = {path = "src/crypto"}
+cryptonote_basic = {path = "src/cryptonote_basic"}
+cryptonote_core = {path = "src/cryptonote_core"}
+device = {path = "src/device"}

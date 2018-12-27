@@ -1,12 +1,12 @@
 [package]
-name = "xmr_cryptonote_basic"
+name = "cryptonote_basic"
 version = "0.1.0"
 authors = ["LINE <769483043@qq.com>"]
 edition = "2018"
 
 [dependencies]
-xmr_crypto = {path = "../crypto"}
-xmr_device = {path = "../device"}
-xmr_db = {path = "../db"}
+crypto = {path = "../crypto"}
+device = {path = "../device"}
+db = {path = "../db"}
 
 tokio = "0.1.13"
