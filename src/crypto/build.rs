@@ -1,4 +1,7 @@
 extern crate cc;
+extern crate bindgen;
+
+use std::env;
 
 
 fn main() {
@@ -31,4 +34,13 @@ fn main() {
         .include("ccrypto/src");
 
     build.compile("ccrypto");
+
+//    println!("cargo:rustc-link-lib=bz2");
+
+    let bindings = bindgen::Builder::default()
+        .header("ccrypto/src/crypto-ops.h")
+        .generate()
+        .expect("Unable to generate bindings");
+    bindings.write_to_file("src/bindings.rs")
+        .expect("Couldn't write bindings!");
 }
