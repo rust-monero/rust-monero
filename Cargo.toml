@@ -10,7 +10,8 @@ members = [
     "src/crypto",
     "src/cryptonote_basic",
     "src/cryptonote_core",
-    "src/device"
+    "src/device",
+    "src/ringct"
 ]
 
 [dependencies]
@@ -20,3 +21,4 @@ crypto = {path = "src/crypto"}
 cryptonote_basic = {path = "src/cryptonote_basic"}
 cryptonote_core = {path = "src/cryptonote_core"}
 device = {path = "src/device"}
+ringct = {path = "src/ringct"}
