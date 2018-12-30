@@ -1,54 +1,82 @@
+use crypto::crypto_ops::ge_dsmp;
+
 const ATOMS: usize = 64;
 
-struct Key {
+pub struct Key {
     bytes: [char; 32]
 }
 
 //vector of keys
-struct KeyV(Vec<Key>);
+pub struct KeyV(Vec<Key>);
 //matrix of keys (indexed by column first)
-struct KeyM(Vec<KeyV>);
+pub struct KeyM(Vec<KeyV>);
 
-struct CtKey {
-    dest: Key,
+pub struct CtKey {
+    pub dest: Key,
     //C here if public
-    mask: Key,
+    pub mask: Key,
 }
 
-struct CtKeyV(Vec<CtKey>);
-struct CtKeyM(Vec<CtKeyV>);
+pub struct CtKeyV(Vec<CtKey>);
+pub struct CtKeyM(Vec<CtKeyV>);
 
-struct MultisigKLRki {
+pub struct MultisigKLRki {
     K: Key,
     L: Key,
     R: Key,
     ki: Key
 }
 
-struct MultisigOut {
+pub struct MultisigOut {
     c: Vec<Key>
 }
 
-struct EcdhTuple {
+pub struct EcdhTuple {
     mask: Key,
     amount: Key,
     senderPk: Key
 }
 
-struct XmrAmount(u64);
+pub struct XmrAmount(u64);
 
-struct bits([u32; ATOMS]);
+pub struct bits([u32; ATOMS]);
 
-struct Key64([Key; 64]);
+pub struct Key64([Key; 64]);
 
-struct BoroSig {
+pub struct BoroSig {
     s0: Key64,
     s1: Key64,
     ee: Key
 }
 
-struct GeDsmp {
+pub struct GeDsmp {
     //crypto-ops.h
-    //ge_dsmp k;
+     k: ge_dsmp
+}
+
+pub struct MgSig {
+    ss: KeyM,
+    cc: Key,
+    II: keyV
+}
+
+pub struct RangeSig {
+    asig: BoroSig,
+    Ci: Key64,
+}
+
+pub struct Bulletproof {
+    V: KeyV,
+    A: Key,
+    S: Key,
+    T1: Key,
+    T2: Key,
+    taux: Key,
+    mu: Key,
+    L: KeyV,
+    R: KeyV,
+    a: Key,
+    b: Key,
+    t: Key,
 }
 
