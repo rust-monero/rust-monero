@@ -1,6 +1,6 @@
 use crypto::crypto::PublicKey;
 
-struct OutputData {
+pub struct OutputData {
     pubkey: PublicKey,
     unlock_time: u64,
     height: u64,
