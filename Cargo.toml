@@ -10,6 +10,7 @@ members = [
     "src/crypto",
     "src/cryptonote_basic",
     "src/cryptonote_core",
+    "src/cryptonote_config",
     "src/device",
     "src/ringct",
     "src/checkpoints"
@@ -21,6 +22,7 @@ db = {path = "src/db"}
 crypto = {path = "src/crypto"}
 cryptonote_basic = {path = "src/cryptonote_basic"}
 cryptonote_core = {path = "src/cryptonote_core"}
+cryptonote_config = {path = "src/cryptonote_config"}
 device = {path = "src/device"}
 ringct = {path = "src/ringct"}
 checkpoints = {path = "src/checkpoints"}

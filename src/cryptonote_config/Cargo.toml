@@ -1,0 +1,7 @@
+[package]
+name = "cryptonote_config"
+version = "0.1.0"
+authors = ["LINEZH <huizhaoline@gmail.com>"]
+edition = "2018"
+
+[dependencies]

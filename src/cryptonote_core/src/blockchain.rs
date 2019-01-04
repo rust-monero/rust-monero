@@ -85,7 +85,7 @@ pub struct Blockchain {
     checkpoints: Checkpoints,
     enforce_dns_checkpoints: bool,
 
-    hardfork: HardFork,
+    hard_fork: HardFork,
     //TODO
     //nettype
 }
