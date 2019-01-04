@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::iter::Map;
 
+use checkpoints::Checkpoints;
 use crypto::crypto::KeyImage;
 use crypto::hash::Hash;
 use cryptonote_basic::block::Block;
@@ -10,6 +11,7 @@ use db::blockchain_db::BlockChainDB;
 use db::blockchain_db::OutputData;
 
 use crate::tx_pool::TxMemoryPool;
+use cryptonote_basic::hard_fork::HardFork;
 
 enum BlockchainDbSyncMode {
     // user didn't specify, use db_async
@@ -54,4 +56,36 @@ pub struct Blockchain {
     show_time_stats: bool,
     db_default_sync: bool,
     db_sync_on_blocks: bool,
+
+    db_sync_threshold: u64,
+    max_prepare_blocks_threads: u64,
+    fake_pow_calc_time: u64,
+    fake_scan_time: u64,
+    sync_counter: u64,
+    bytes_to_sync: u64,
+    timestamps: Vec<u64>,
+    difficulties: Vec<DifficultyType>,
+    timestamps_and_difficulties_height: u64,
+    //TODO
+    //epee::critical_section m_difficulty_lock;
+    difficulty_for_next_block_top_hash: Hash,
+    difficulty_for_next_block: DifficultyType,
+
+
+    //TODO
+    //boost::asio::io_service m_async_service;
+    //boost::thread_group m_async_pool;
+    //std::unique_ptr<boost::asio::io_service::work> m_async_work_idle;
+
+    // all alternative chains  crypto::hash -> block_extended_info
+    alternative_chains: HashMap<Hash, BlockExtendedInfo>,
+    // some invalid blocks // crypto::hash -> block_extended_info
+    invalid_blocks: HashMap<Hash, BlockExtendedInfo>,
+
+    checkpoints: Checkpoints,
+    enforce_dns_checkpoints: bool,
+
+    hardfork: HardFork,
+    //TODO
+    //nettype
 }

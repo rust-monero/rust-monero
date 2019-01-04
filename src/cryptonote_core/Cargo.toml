@@ -8,5 +8,6 @@ edition = "2018"
 db = {path = "../db"}
 crypto = {path = "../crypto"}
 cryptonote_basic = {path = "../cryptonote_basic"}
+checkpoints = {path = "../checkpoints"}
 
 tokio = "0.1.13"
