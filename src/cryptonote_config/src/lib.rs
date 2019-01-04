@@ -17,7 +17,7 @@ pub const CRYPTONOTE_DEFAULT_TX_SPENDABLE_AGE: u64 = 10;
 pub const BLOCKCHAIN_TIMESTAMP_CHECK_WINDOW: u64 = 10;
 
 // MONEY_SUPPLY - total number coins to be generated
-pub const MONEY_SUPPLY: u64 = -1;
+pub const MONEY_SUPPLY: i64 = -1;
 pub const EMISSION_SPEED_FACTOR_PER_MINUTE: u64 = 20;
 pub const FINAL_SUBSIDY_PER_MINUTE: u64 = 300000000000; //3 * pow(10, 11)
 
