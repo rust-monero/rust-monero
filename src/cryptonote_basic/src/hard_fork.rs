@@ -1,4 +1,4 @@
-use db::blockchain_db::BlockChainDB;
+//use db::blockchain_db::BlockChainDB;
 use std::collections::vec_deque::VecDeque;
 use std::sync::Mutex;
 use std::sync::Arc;
@@ -24,7 +24,7 @@ struct Params {
 
 pub struct HardFork {
     //TODO with sized
-    db: Box<BlockChainDB>,
+//    db: Box<BlockChainDB>,
     forked_time: i64,
     update_time: i64,
     window_size: u64,

@@ -7,6 +7,6 @@ edition = "2018"
 [dependencies]
 crypto = {path = "../crypto"}
 device = {path = "../device"}
-db = {path = "../db"}
+#db = {path = "../db"}
 
 tokio = "0.1.13"

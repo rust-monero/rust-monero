@@ -1,5 +1,7 @@
 use crypto::crypto::PublicKey;
 use crypto::hash::Hash;
+use cryptonote_basic::block::Block;
+use cryptonote_basic::difficulty::DifficultyType;
 
 pub struct OutputData {
     pubkey: PublicKey,
@@ -50,10 +52,36 @@ impl Default for TxpoolTxMeta {
             do_not_relay: 0,
             double_spend_seen: 1,
             bf_padding: 7,
-            padding: [0; 76]
+            padding: [0; 76],
         }
     }
 }
 
+pub const DFB_SAFE: usize = 1;
+pub const DBF_FAST: usize = 2;
+pub const DBF_FASTEST: usize = 4;
+pub const DBF_RDONLY: usize = 8;
+pub const DBF_SALVAGE: usize = 0x10;
 
-pub trait BlockChainDB {}
+
+pub trait BlockChainDB {
+    /**
+ * @brief add the block and metadata to the db
+ *
+ * The subclass implementing this will add the specified block and
+ * block metadata to its backing store.  This does not include its
+ * transactions, those are added in a separate step.
+ *
+ * If any of this cannot be done, the subclass should throw the corresponding
+ * subclass of DB_EXCEPTION
+ *
+ * @param blk the block to be added
+ * @param block_weight the weight of the block (transactions and all)
+ * @param cumulative_difficulty the accumulated difficulty after this block
+ * @param coins_generated the number of coins generated total after this block
+ * @param blk_hash the hash of the block
+ */
+    fn add_block(&self, blk: Block, block_weight: usize,
+                 cumulative_difficulty: DifficultyType, coins_generated: u64, num_rct_outs: u64,
+                 blk_hash: Hash);
+}
