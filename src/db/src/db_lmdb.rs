@@ -1,11 +1,19 @@
+use std::fs;
+use std::fs::File;
+use std::os::raw::c_uint;
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::AtomicPtr;
 use std::thread::Thread;
 
 use lmdb::Database;
 use lmdb::Environment;
+use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
 use lmdb::RwTransaction;
+
+#[macro_use]
+extern crate log;
 
 pub struct MdbTxnCursors<'txn> {
     pub txc_blocks: RwCursor<'txn>,
@@ -102,5 +110,27 @@ pub struct BlockchainLMDB<'env, 'txn> {
     batch_active: bool,
     wcursors: MdbTxnCursors<'txn>,
     //  mutable boost::thread_specific_ptr<mdb_threadinfo> m_tinfo;
+}
+
+impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
+    fn open(&mut self, filename: &str, mdb_flags: i32) {
+        let mdb_flags = EnvironmentFlags::NO_READAHEAD;
+        let db_path = Path::new(filename);
+        if db_path.exists() {
+            if !db_path.is_dir() {
+                panic!("LMDB needs a directory path, but a file was passed, filename = {}", filename);
+            }
+        } else {
+            match fs::create_dir_all(db_path) {
+                Err(_) => panic!("Failed to create directory {}", filename),
+                Ok(_) => info!("create file success")
+            }
+        }
+        if let Some(parent_path) = db_path.parent() {
+            
+        } else {
+
+        }
+    }
 }
 
