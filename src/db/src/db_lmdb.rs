@@ -12,8 +12,11 @@ use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
 use lmdb::RwTransaction;
 
-#[macro_use]
-extern crate log;
+use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_FILENAME;
+use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME;
+
+use crate::blockchain_db::BlockChainDBInfo;
+use crate::blockchain_db::DBF_FAST;
 
 pub struct MdbTxnCursors<'txn> {
     pub txc_blocks: RwCursor<'txn>,
@@ -73,6 +76,8 @@ pub struct MdbTxnSafe<'env, 'txn> {
 impl<'env, 'txn> MdbTxnSafe<'env, 'txn> {}
 
 pub struct BlockchainLMDB<'env, 'txn> {
+    pub db: BlockChainDBInfo,
+
     pub env: Environment,
 
     pub blocks: Database,
@@ -126,10 +131,32 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
                 Ok(_) => info!("create file success")
             }
         }
-        if let Some(parent_path) = db_path.parent() {
-            
-        } else {
+        let parent_path = db_path.parent().unwrap();
+        if parent_path.join(CRYPTONOTE_BLOCKCHAINDATA_FILENAME).exists() ||
+            parent_path.join(CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME).exists() {
+            error!("Found existing LMDB files in {}", parent_path.to_str().unwrap());
+            error!("Move {} and/or {} to {}, or delete them, and then restart",
+                   CRYPTONOTE_BLOCKCHAINDATA_FILENAME, CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME, filename);
+            panic!("Database could not be opened");
+        }
+        self.db.folder = String::from(filename);
 
+        let mut flags = EnvironmentFlags::empty;
+        if flags & DBF_FAST > 0 {
+            flags = flags | EnvironmentFlags::NO_SYNC;
+        }
+
+
+        self.env = Environment::new()
+            .set_max_dbs(20)
+            .set_max_readers(126) //TODO calculate from cpu core nums
+            .open(db_path)
+            .expect("Failed to create lmdb environment");
+
+        let database = self.env.open_db(None);
+
+        if let Ok(database) = self.env.open_db(None) {} else {
+            error!("open db failed!");
         }
     }
 }

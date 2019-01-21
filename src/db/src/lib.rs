@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+
 pub mod blockchain_db;
 pub mod db_lmdb;
 
@@ -5,6 +8,7 @@ pub mod db_lmdb;
 mod tests {
     #[test]
     fn it_works() {
-        assert_eq!(2 + 2, 4);
+        info!("test1");
+        warn!("test2 {}", "monero");
     }
 }

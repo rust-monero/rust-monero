@@ -3,6 +3,7 @@ use crypto::hash::Hash;
 use cryptonote_basic::block::Block;
 use cryptonote_basic::difficulty::DifficultyType;
 use cryptonote_basic::transaction::Transaction;
+use cryptonote_basic::hard_fork::HardFork;
 
 pub struct OutputData {
     pubkey: PublicKey,
@@ -64,6 +65,19 @@ pub const DBF_FASTEST: usize = 4;
 pub const DBF_RDONLY: usize = 8;
 pub const DBF_SALVAGE: usize = 0x10;
 
+pub struct BlockChainDBInfo {
+    pub folder: String,
+    //performance metric
+    pub num_calls: u64,
+    pub time_blk_hash: u64,
+    pub time_add_block1: u64,
+    pub time_add_transaction: u64,
+
+    pub time_tx_exists: u64,
+    pub time_commit1: u64,
+    pub auto_remove_logs: bool,
+    pub hardFork: HardFork,
+}
 
 pub trait BlockChainDB {
     /**

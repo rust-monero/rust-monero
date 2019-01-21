@@ -10,3 +10,4 @@ log = "0.4.6"
 
 crypto = {path = "../crypto"}
 cryptonote_basic = {path = "../cryptonote_basic"}
+cryptonote_config = {path = "../cryptonote_config"}
