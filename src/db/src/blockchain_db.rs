@@ -59,11 +59,11 @@ impl Default for TxpoolTxMeta {
     }
 }
 
-pub const DFB_SAFE: usize = 1;
-pub const DBF_FAST: usize = 2;
-pub const DBF_FASTEST: usize = 4;
-pub const DBF_RDONLY: usize = 8;
-pub const DBF_SALVAGE: usize = 0x10;
+pub const DFB_SAFE: i32 = 1;
+pub const DBF_FAST: i32 = 2;
+pub const DBF_FASTEST: i32 = 4;
+pub const DBF_RDONLY: i32 = 8;
+pub const DBF_SALVAGE: i32 = 0x10;
 
 pub struct BlockChainDBInfo {
     pub folder: String,

@@ -17,6 +17,9 @@ use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME;
 
 use crate::blockchain_db::BlockChainDBInfo;
 use crate::blockchain_db::DBF_FAST;
+use crate::blockchain_db::DBF_FASTEST;
+use crate::blockchain_db::DBF_RDONLY;
+use crate::blockchain_db::DBF_SALVAGE;
 
 pub struct MdbTxnCursors<'txn> {
     pub txc_blocks: RwCursor<'txn>,
@@ -118,8 +121,8 @@ pub struct BlockchainLMDB<'env, 'txn> {
 }
 
 impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
-    fn open(&mut self, filename: &str, mdb_flags: i32) {
-        let mdb_flags = EnvironmentFlags::NO_READAHEAD;
+    fn open(&mut self, filename: &str, db_flags: i32) {
+        let mut mdb_flags = EnvironmentFlags::NO_READAHEAD;
         let db_path = Path::new(filename);
         if db_path.exists() {
             if !db_path.is_dir() {
@@ -141,23 +144,27 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
         }
         self.db.folder = String::from(filename);
 
-        let mut flags = EnvironmentFlags::empty;
-        if flags & DBF_FAST > 0 {
-            flags = flags | EnvironmentFlags::NO_SYNC;
+        if db_flags & DBF_FAST > 0 {
+            mdb_flags = mdb_flags | EnvironmentFlags::NO_SYNC;
+        } else if db_flags & DBF_FASTEST > 0 {
+            mdb_flags = mdb_flags | EnvironmentFlags::NO_SYNC | EnvironmentFlags::WRITE_MAP | EnvironmentFlags::MAP_ASYNC;
+        } else if db_flags & DBF_RDONLY > 0 {
+            mdb_flags = mdb_flags | EnvironmentFlags::READ_ONLY;
+        } else if db_flags & DBF_SALVAGE > 0 {
+            //TODO update lmdb version
+//            mdb_flags = mdb_flags | EnvironmentFlags::MDB_PREVSNAPSHOT;
         }
 
 
         self.env = Environment::new()
             .set_max_dbs(20)
             .set_max_readers(126) //TODO calculate from cpu core nums
+            .set_flags(mdb_flags)
             .open(db_path)
             .expect("Failed to create lmdb environment");
 
-        let database = self.env.open_db(None);
-
-        if let Ok(database) = self.env.open_db(None) {} else {
-            error!("open db failed!");
-        }
+        let database = self.env.open_db(None)
+            .expect("open db failed!");
     }
 }
 
