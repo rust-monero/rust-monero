@@ -11,6 +11,7 @@ use lmdb::Environment;
 use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
 use lmdb::RwTransaction;
+use lmdb::ffi::*;
 
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_FILENAME;
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME;
@@ -165,6 +166,15 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
 
         let database = self.env.open_db(None)
             .expect("open db failed!");
+
+//        let mut mei: MDB_envinfo = MDB_envinfo {
+//            me_mapaddr: libc::c_void,
+//            me_mapsize: 0,
+//            me_last_pgno: 0,
+//            me_last_txnid: 0,
+//            me_maxreaders: 0,
+//            me_numreaders: 0,
+//        };
     }
 }
 
