@@ -7,6 +7,7 @@ use std::sync::atomic::AtomicPtr;
 use std::thread::Thread;
 
 use lmdb::Database;
+use lmdb::DatabaseFlags;
 use lmdb::Environment;
 use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
@@ -20,6 +21,59 @@ use crate::blockchain_db::DBF_FAST;
 use crate::blockchain_db::DBF_FASTEST;
 use crate::blockchain_db::DBF_RDONLY;
 use crate::blockchain_db::DBF_SALVAGE;
+
+/* DB schema:
+ *
+ * Table            Key          Data
+ * -----            ---          ----
+ * blocks           block ID     block blob
+ * block_heights    block hash   block height
+ * block_info       block ID     {block metadata}
+ *
+ * txs_pruned       txn ID       pruned txn blob
+ * txs_prunable     txn ID       prunable txn blob
+ * txs_prunable_hash txn ID      prunable txn hash
+ * tx_indices       txn hash     {txn ID, metadata}
+ * tx_outputs       txn ID       [txn amount output indices]
+ *
+ * output_txs       output ID    {txn hash, local index}
+ * output_amounts   amount       [{amount output index, metadata}...]
+ *
+ * spent_keys       input hash   -
+ *
+ * txpool_meta      txn hash     txn metadata
+ * txpool_blob      txn hash     txn blob
+ *
+ * Note: where the data items are of uniform size, DUPFIXED tables have
+ * been used to save space. In most of these cases, a dummy "zerokval"
+ * key is used when accessing the table; the Key listed above will be
+ * attached as a prefix on the Data to serve as the DUPSORT key.
+ * (DUPFIXED saves 8 bytes per record.)
+ *
+ * The output_amounts table doesn't use a dummy key, but uses DUPSORT.
+ */
+const LMDB_BLOCKS: &str = "blocks";
+const LMDB_BLOCK_HEIGHTS: &str = "block_heights";
+const LMDB_BLOCK_INFO: &str = "block_info";
+
+const LMDB_TXS: &str = "txs";
+const LMDB_TXS_PRUNED: &str = "txs_pruned";
+const LMDB_TXS_PRUNABLE: &str = "txs_prunable";
+const LMDB_TXS_PRUNABLE_HASH: &str = "txs_prunable_hash";
+const LMDB_TX_INDICES: &str = "tx_indices";
+const LMDB_TX_OUTPUTS: &str = "tx_outputs";
+
+const LMDB_OUTPUT_TXS: &str = "output_txs";
+const LMDB_OUTPUT_AMOUNTS: &str = "output_amounts";
+const LMDB_SPENT_KEYS: &str = "spent_keys";
+
+const LMDB_TXPOOL_META: &str = "txpool_meta";
+const LMDB_TXPOOL_BLOB: &str = "txpool_blob";
+
+const LMDB_HF_STARTING_HEIGHTS: &str = "hf_starting_heights";
+const LMDB_HF_VERSIONS: &str = "hf_versions";
+
+const LMDB_PROPERTIES: &str = "properties";
 
 pub struct MdbTxnCursors<'txn> {
     pub txc_blocks: RwCursor<'txn>,
@@ -167,6 +221,19 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
 
         let mut txn = self.env.begin_rw_txn()
             .expect("Failed to create a transaction for the db");
+
+        unsafe {
+            self.blocks = txn.create_db(Some(LMDB_BLOCKS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for blocks");
+            self.block_info = txn.create_db(Some(LMDB_BLOCK_INFO), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for block_info");
+            self.block_heights = txn.create_db(Some(LMDB_BLOCK_HEIGHTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for m_block_heights");
+            self.txs = txn.create_db(Some(LMDB_TXS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for m_txs");
+            self.txs_pruned = txn.create_db(Some(LMDB_TXS_PRUNED), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for m_txs_pruned");
+        }
     }
 }
 
