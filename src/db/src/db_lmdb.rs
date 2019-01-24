@@ -11,7 +11,6 @@ use lmdb::Environment;
 use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
 use lmdb::RwTransaction;
-use lmdb::ffi::*;
 
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_FILENAME;
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME;
@@ -63,21 +62,18 @@ pub struct MdbRflags {
     pub rf_hf_versions: bool,
 }
 
-pub struct MdbThreadInfo<'env, 'txn> {
-    pub ti_rtxn: RwTransaction<'env>,
-    pub ti_rcursors: MdbTxnCursors<'txn>,
-    pub ti_rflags: MdbRflags,
-}
-
-pub struct MdbTxnSafe<'env, 'txn> {
-    tinfo: MdbThreadInfo<'env, 'txn>,
-    txn: RwTransaction<'env>,
-    batch_txn: bool,
-    check: bool,
-
-}
-
-impl<'env, 'txn> MdbTxnSafe<'env, 'txn> {}
+//pub struct MdbThreadInfo<'env, 'txn> {
+//    pub ti_rtxn: RwTransaction<'env>,
+//    pub ti_rcursors: MdbTxnCursors<'txn>,
+//    pub ti_rflags: MdbRflags,
+//}
+//
+//pub struct MdbTxnSafe<'env, 'txn> {
+//    tinfo: MdbThreadInfo<'env, 'txn>,
+//    txn: RwTransaction<'env>,
+//    batch_txn: bool,
+//    check: bool,
+//}
 
 pub struct BlockchainLMDB<'env, 'txn> {
     pub db: BlockChainDBInfo,
@@ -111,8 +107,8 @@ pub struct BlockchainLMDB<'env, 'txn> {
     cum_size: u64,
     cum_count: u32,
     folder: String,
-    write_txn: MdbTxnSafe<'env, 'txn>,
-    write_batch_txn: MdbTxnSafe<'env, 'txn>,
+    write_txn: RwTransaction<'env>,
+    write_batch_txn: RwTransaction<'env>,
     //  boost::thread::id m_writer;
 
     batch_transactions: bool,
@@ -167,14 +163,10 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
         let database = self.env.open_db(None)
             .expect("open db failed!");
 
-//        let mut mei: MDB_envinfo = MDB_envinfo {
-//            me_mapaddr: libc::c_void,
-//            me_mapsize: 0,
-//            me_last_pgno: 0,
-//            me_last_txnid: 0,
-//            me_maxreaders: 0,
-//            me_numreaders: 0,
-//        };
+        //TODO resize
+
+        let mut txn = self.env.begin_rw_txn()
+            .expect("Failed to create a transaction for the db");
     }
 }
 
