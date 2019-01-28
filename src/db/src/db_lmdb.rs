@@ -233,6 +233,25 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
                 .expect("Failed to open db handle for m_txs");
             self.txs_pruned = txn.create_db(Some(LMDB_TXS_PRUNED), DatabaseFlags::INTEGER_KEY)
                 .expect("Failed to open db handle for m_txs_pruned");
+
+            self.txs_prunable = txn.create_db(Some(LMDB_TXS_PRUNABLE), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle fortxs_prunable");
+            self.txs_prunable_hash = txn.create_db(Some(LMDB_TXS_PRUNABLE_HASH), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle fortxs_prunable_hash");
+            self.tx_indices = txn.create_db(Some(LMDB_TX_INDICES), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle fortx_indices");
+            self.tx_outputs = txn.create_db(Some(LMDB_TX_OUTPUTS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle fortx_outputs");
+            self.output_txs = txn.create_db(Some(LMDB_OUTPUT_TXS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle foroutput_txs");
+            self.output_amounts = txn.create_db(Some(LMDB_OUTPUT_AMOUNTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle foroutput_amounts");
+            self.spent_keys = txn.create_db(Some(LMDB_SPENT_KEYS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle forspent_keys");
+            self.txpool_meta = txn.create_db(Some(LMDB_TXPOOL_META), DatabaseFlags::empty())
+                .expect("Failed to open db handle fortxpool_meta");
+            self.txpool_blob = txn.create_db(Some(LMDB_TXPOOL_BLOB), DatabaseFlags::empty())
+                .expect("Failed to open db handle fortxpool_blob");
         }
     }
 }
