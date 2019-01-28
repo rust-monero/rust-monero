@@ -11,6 +11,7 @@ use lmdb::DatabaseFlags;
 use lmdb::Environment;
 use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
+use lmdb::Transaction;
 use lmdb::RwTransaction;
 
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_FILENAME;
@@ -235,24 +236,45 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
                 .expect("Failed to open db handle for m_txs_pruned");
 
             self.txs_prunable = txn.create_db(Some(LMDB_TXS_PRUNABLE), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle fortxs_prunable");
+                .expect("Failed to open db handle for txs_prunable");
             self.txs_prunable_hash = txn.create_db(Some(LMDB_TXS_PRUNABLE_HASH), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle fortxs_prunable_hash");
+                .expect("Failed to open db handle for txs_prunable_hash");
             self.tx_indices = txn.create_db(Some(LMDB_TX_INDICES), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle fortx_indices");
+                .expect("Failed to open db handle for tx_indices");
             self.tx_outputs = txn.create_db(Some(LMDB_TX_OUTPUTS), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle fortx_outputs");
+                .expect("Failed to open db handle for tx_outputs");
             self.output_txs = txn.create_db(Some(LMDB_OUTPUT_TXS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle foroutput_txs");
+                .expect("Failed to open db handle for output_txs");
             self.output_amounts = txn.create_db(Some(LMDB_OUTPUT_AMOUNTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle foroutput_amounts");
+                .expect("Failed to open db handle for output_amounts");
             self.spent_keys = txn.create_db(Some(LMDB_SPENT_KEYS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle forspent_keys");
+                .expect("Failed to open db handle for spent_keys");
             self.txpool_meta = txn.create_db(Some(LMDB_TXPOOL_META), DatabaseFlags::empty())
-                .expect("Failed to open db handle fortxpool_meta");
+                .expect("Failed to open db handle for txpool_meta");
             self.txpool_blob = txn.create_db(Some(LMDB_TXPOOL_BLOB), DatabaseFlags::empty())
-                .expect("Failed to open db handle fortxpool_blob");
+                .expect("Failed to open db handle for txpool_blob");
+
+            self.hf_starting_heights = txn.create_db(Some(LMDB_HF_STARTING_HEIGHTS), DatabaseFlags::empty())
+                .expect("Failed to open db handle for hf_starting_heights");
+            self.hf_versions = txn.create_db(Some(LMDB_HF_VERSIONS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for hf_versions");
+            self.properties = txn.create_db(Some(LMDB_PROPERTIES), DatabaseFlags::empty())
+                .expect("Failed to open db handle for properties");
+
+            //TODO
+//            mdb_set_dupsort(txn, m_spent_keys, compare_hash32);
+//            mdb_set_dupsort(txn, m_block_heights, compare_hash32);
+//            mdb_set_dupsort(txn, m_tx_indices, compare_hash32);
+//            mdb_set_dupsort(txn, m_output_amounts, compare_uint64);
+//            mdb_set_dupsort(txn, m_output_txs, compare_uint64);
+//            mdb_set_dupsort(txn, m_block_info, compare_uint64);
+//
+//            mdb_set_compare(txn, m_txpool_meta, compare_hash32);
+//            mdb_set_compare(txn, m_txpool_blob, compare_hash32);
+//            mdb_set_compare(txn, m_properties, compare_string);
         }
+        //TODO  get new version and update database.
+        let t = txn.commit();
     }
 }
 
