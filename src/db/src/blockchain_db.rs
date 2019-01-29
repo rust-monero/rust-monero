@@ -76,7 +76,7 @@ pub struct BlockChainDBInfo {
     pub time_tx_exists: u64,
     pub time_commit1: u64,
     pub auto_remove_logs: bool,
-    pub hardFork: HardFork,
+    pub hardFork: Option<HardFork>,
 }
 
 pub trait BlockChainDB {

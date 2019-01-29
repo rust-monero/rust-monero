@@ -11,8 +11,8 @@ use lmdb::DatabaseFlags;
 use lmdb::Environment;
 use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
-use lmdb::Transaction;
 use lmdb::RwTransaction;
+use lmdb::Transaction;
 
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_FILENAME;
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME;
@@ -162,18 +162,18 @@ pub struct BlockchainLMDB<'env, 'txn> {
     cum_size: u64,
     cum_count: u32,
     folder: String,
-    write_txn: RwTransaction<'env>,
-    write_batch_txn: RwTransaction<'env>,
+    write_txn: Option<RwTransaction<'env>>,
+    write_batch_txn: Option<RwTransaction<'env>>,
     //  boost::thread::id m_writer;
 
     batch_transactions: bool,
     batch_active: bool,
-    wcursors: MdbTxnCursors<'txn>,
+    wcursors: Option<MdbTxnCursors<'txn>>,
     //  mutable boost::thread_specific_ptr<mdb_threadinfo> m_tinfo;
 }
 
 impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
-    fn open(&mut self, filename: &str, db_flags: i32) {
+    fn open(filename: &str, db_flags: i32) -> BlockchainLMDB {
         let mut mdb_flags = EnvironmentFlags::NO_READAHEAD;
         let db_path = Path::new(filename);
         if db_path.exists() {
@@ -194,8 +194,6 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
                    CRYPTONOTE_BLOCKCHAINDATA_FILENAME, CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME, filename);
             panic!("Database could not be opened");
         }
-        self.db.folder = String::from(filename);
-
         if db_flags & DBF_FAST > 0 {
             mdb_flags = mdb_flags | EnvironmentFlags::NO_SYNC;
         } else if db_flags & DBF_FASTEST > 0 {
@@ -208,73 +206,167 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
         }
 
 
-        self.env = Environment::new()
+        let mut env = Environment::new()
             .set_max_dbs(20)
             .set_max_readers(126) //TODO calculate from cpu core nums
             .set_flags(mdb_flags)
             .open(db_path)
             .expect("Failed to create lmdb environment");
 
-        let database = self.env.open_db(None)
-            .expect("open db failed!");
-
         //TODO resize
 
-        let mut txn = self.env.begin_rw_txn()
+        let mut txn = env.begin_rw_txn()
             .expect("Failed to create a transaction for the db");
 
-        unsafe {
-            self.blocks = txn.create_db(Some(LMDB_BLOCKS), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle for blocks");
-            self.block_info = txn.create_db(Some(LMDB_BLOCK_INFO), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for block_info");
-            self.block_heights = txn.create_db(Some(LMDB_BLOCK_HEIGHTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for m_block_heights");
-            self.txs = txn.create_db(Some(LMDB_TXS), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle for m_txs");
-            self.txs_pruned = txn.create_db(Some(LMDB_TXS_PRUNED), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle for m_txs_pruned");
+        let blocks = unsafe {
+            txn.create_db(Some(LMDB_BLOCKS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for blocks")
+        };
+        let block_info = unsafe {
+            txn.create_db(Some(LMDB_BLOCK_INFO), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for block_info")
+        };
+        let block_heights = unsafe {
+            txn.create_db(Some(LMDB_BLOCK_HEIGHTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for block_heights")
+        };
+        let txs = unsafe {
+            txn.create_db(Some(LMDB_TXS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for txs")
+        };
+        let txs_pruned = unsafe {
+            txn.create_db(Some(LMDB_TXS_PRUNED), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for txs_pruned")
+        };
+        let txs_prunable = unsafe {
+            txn.create_db(Some(LMDB_TXS_PRUNABLE), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for txs_prunable")
+        };
+        let txs_prunable_hash = unsafe {
+            txn.create_db(Some(LMDB_TXS_PRUNABLE_HASH), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for txs_prunable_hash")
+        };
+        let tx_indices = unsafe {
+            txn.create_db(Some(LMDB_TX_INDICES), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for tx_indices")
+        };
+        let tx_outputs = unsafe {
+            txn.create_db(Some(LMDB_TX_OUTPUTS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for tx_outputs")
+        };
+        let output_txs = unsafe {
+            txn.create_db(Some(LMDB_OUTPUT_TXS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for output_txs")
+        };
+        let output_amounts = unsafe {
+            txn.create_db(Some(LMDB_OUTPUT_AMOUNTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for output_amounts")
+        };
+        let spent_keys = unsafe {
+            txn.create_db(Some(LMDB_SPENT_KEYS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
+                .expect("Failed to open db handle for spent_keys")
+        };
+        let txpool_meta = unsafe {
+            txn.create_db(Some(LMDB_TXPOOL_META), DatabaseFlags::empty())
+                .expect("Failed to open db handle for txpool_meta")
+        };
+        let txpool_blob = unsafe {
+            txn.create_db(Some(LMDB_TXPOOL_BLOB), DatabaseFlags::empty())
+                .expect("Failed to open db handle for txpool_blob")
+        };
+        let hf_starting_heights = unsafe {
+            txn.create_db(Some(LMDB_HF_STARTING_HEIGHTS), DatabaseFlags::empty())
+                .expect("Failed to open db handle for hf_starting_heights")
+        };
+        let hf_versions = unsafe {
+            txn.create_db(Some(LMDB_HF_VERSIONS), DatabaseFlags::INTEGER_KEY)
+                .expect("Failed to open db handle for hf_versions")
+        };
+        let properties = unsafe {
+            txn.create_db(Some(LMDB_PROPERTIES), DatabaseFlags::empty())
+                .expect("Failed to open db handle for properties")
+        };
 
-            self.txs_prunable = txn.create_db(Some(LMDB_TXS_PRUNABLE), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle for txs_prunable");
-            self.txs_prunable_hash = txn.create_db(Some(LMDB_TXS_PRUNABLE_HASH), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle for txs_prunable_hash");
-            self.tx_indices = txn.create_db(Some(LMDB_TX_INDICES), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for tx_indices");
-            self.tx_outputs = txn.create_db(Some(LMDB_TX_OUTPUTS), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle for tx_outputs");
-            self.output_txs = txn.create_db(Some(LMDB_OUTPUT_TXS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for output_txs");
-            self.output_amounts = txn.create_db(Some(LMDB_OUTPUT_AMOUNTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for output_amounts");
-            self.spent_keys = txn.create_db(Some(LMDB_SPENT_KEYS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for spent_keys");
-            self.txpool_meta = txn.create_db(Some(LMDB_TXPOOL_META), DatabaseFlags::empty())
-                .expect("Failed to open db handle for txpool_meta");
-            self.txpool_blob = txn.create_db(Some(LMDB_TXPOOL_BLOB), DatabaseFlags::empty())
-                .expect("Failed to open db handle for txpool_blob");
 
-            self.hf_starting_heights = txn.create_db(Some(LMDB_HF_STARTING_HEIGHTS), DatabaseFlags::empty())
-                .expect("Failed to open db handle for hf_starting_heights");
-            self.hf_versions = txn.create_db(Some(LMDB_HF_VERSIONS), DatabaseFlags::INTEGER_KEY)
-                .expect("Failed to open db handle for hf_versions");
-            self.properties = txn.create_db(Some(LMDB_PROPERTIES), DatabaseFlags::empty())
-                .expect("Failed to open db handle for properties");
-
-            //TODO
-//            mdb_set_dupsort(txn, m_spent_keys, compare_hash32);
-//            mdb_set_dupsort(txn, m_block_heights, compare_hash32);
-//            mdb_set_dupsort(txn, m_tx_indices, compare_hash32);
-//            mdb_set_dupsort(txn, m_output_amounts, compare_uint64);
-//            mdb_set_dupsort(txn, m_output_txs, compare_uint64);
-//            mdb_set_dupsort(txn, m_block_info, compare_uint64);
+//        let txc_blocks = txn.open_rw_cursor(blocks).unwrap();
+//        let txc_block_info = txn.open_rw_cursor(block_info).unwrap();
+//        let txc_block_heights = txn.open_rw_cursor(block_heights).unwrap();
+//        let txc_txs = txn.open_rw_cursor(txs).unwrap();
+//        let txc_txs_pruned = txn.open_rw_cursor(txs_pruned).unwrap();
+//        let txc_txs_prunable = txn.open_rw_cursor(txs_prunable).unwrap();
+//        let txc_txs_prunable_hash = txn.open_rw_cursor(txs_prunable_hash).unwrap();
+//        let txc_tx_indices = txn.open_rw_cursor(tx_indices).unwrap();
+//        let txc_tx_outputs = txn.open_rw_cursor(tx_outputs).unwrap();
+//        let txc_output_txs = txn.open_rw_cursor(output_txs).unwrap();
+//        let txc_output_amounts = txn.open_rw_cursor(output_amounts).unwrap();
+//        let txc_spent_keys = txn.open_rw_cursor(spent_keys).unwrap();
+//        let txc_txpool_meta = txn.open_rw_cursor(txpool_meta).unwrap();
+//        let txc_txpool_blob = txn.open_rw_cursor(txpool_blob).unwrap();
+//        let txc_hf_versions = txn.open_rw_cursor(hf_versions).unwrap();
 //
-//            mdb_set_compare(txn, m_txpool_meta, compare_hash32);
-//            mdb_set_compare(txn, m_txpool_blob, compare_hash32);
-//            mdb_set_compare(txn, m_properties, compare_string);
-        }
+//        let cursors = MdbTxnCursors {
+//            txc_blocks,
+//            txc_block_info,
+//            txc_block_heights,
+//            txc_txs,
+//            txc_txs_pruned,
+//            txc_txs_prunable,
+//            txc_txs_prunable_hash,
+//            txc_tx_indices,
+//            txc_tx_outputs,
+//            txc_output_txs,
+//            txc_output_amounts,
+//            txc_spent_keys,
+//            txc_txpool_meta,
+//            txc_txpool_blob,
+//            txc_hf_versions,
+//        };
+
+
         //TODO  get new version and update database.
         let t = txn.commit();
+
+        let mut db = BlockchainLMDB {
+            db: BlockChainDBInfo {
+                folder: "".to_string(),
+                num_calls: 0,
+                time_blk_hash: 0,
+                time_add_block1: 0,
+                time_add_transaction: 0,
+                time_tx_exists: 0,
+                time_commit1: 0,
+                auto_remove_logs: false,
+                hardFork: None,
+            },
+            env,
+            blocks,
+            block_info,
+            block_heights,
+            txs,
+            txs_pruned,
+            txs_prunable,
+            txs_prunable_hash,
+            tx_indices,
+            tx_outputs,
+            output_txs,
+            output_amounts,
+            spent_keys,
+            txpool_meta,
+            txpool_blob,
+            hf_starting_heights,
+            hf_versions,
+            properties,
+
+            cum_size: 0,
+            cum_count: 0,
+            folder: String::from(filename),
+            write_txn: None,
+            write_batch_txn: None,
+            batch_transactions: false,
+            batch_active: false,
+            wcursors: None,
+        };
+        db
     }
 }
 
