@@ -13,7 +13,9 @@ use lmdb::EnvironmentFlags;
 use lmdb::RwCursor;
 use lmdb::RwTransaction;
 use lmdb::Transaction;
+use lmdb_sys::*;
 
+use crypto::hash::Hash;
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_FILENAME;
 use cryptonote_config::CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME;
 
@@ -168,7 +170,7 @@ pub struct BlockchainLMDB<'env, 'txn> {
 
     batch_transactions: bool,
     batch_active: bool,
-    wcursors: Option<MdbTxnCursors<'txn>>,
+//    wcursors: Option<MdbTxnCursors<'txn>>, //may not need this
     //  mutable boost::thread_specific_ptr<mdb_threadinfo> m_tinfo;
 }
 
@@ -321,9 +323,6 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
 //            txc_txpool_blob,
 //            txc_hf_versions,
 //        };
-
-
-        //TODO  get new version and update database.
         let t = txn.commit();
 
         let mut db = BlockchainLMDB {
@@ -364,9 +363,20 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
             write_batch_txn: None,
             batch_transactions: false,
             batch_active: false,
-            wcursors: None,
         };
         db
+    }
+
+    fn block_exists(self, h: &Hash, height: u64) -> Option<u64> {
+        let txn = self.env.begin_ro_txn()
+            .expect("get read only transaction failed when check block exists");
+        let cursor = txn.open_ro_cursor(self.blocks).unwrap();
+        let result = cursor.get(Some(&h[..]), None, MDB_SET);
+        if result.is_ok() {
+
+        } else {
+            None
+        }
     }
 }
 
