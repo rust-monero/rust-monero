@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 lmdb = "0.8.0"
+lmdb-sys = "0.8.0"
 log = "0.4.6"
 
 crypto = {path = "../crypto"}

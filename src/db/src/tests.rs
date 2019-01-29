@@ -5,6 +5,7 @@ use crate::db_lmdb::MdbTxnCursors;
 use lmdb::Transaction;
 use lmdb::RwCursor;
 use lmdb::Cursor;
+use lmdb_sys::MDB_FIRST;
 
 //use lmdb::ffi::MDB_FIRST;
 //lmdb_sys::MDB_FIRST;
@@ -20,6 +21,6 @@ fn lmdb_open() {
     let db = BlockchainLMDB::open("/Users/line/.bitmonero/lmdb", 2);
     let tx = db.env.begin_ro_txn().unwrap();
     let c = tx.open_ro_cursor(db.blocks).unwrap();
-    let d = c.get(Some(&b"key2"[..]), None, 0);
+    let d = c.get(Some(&b"key2"[..]), None, MDB_FIRST);
     assert_eq!((None, &b""[..]), d.unwrap());
 }
