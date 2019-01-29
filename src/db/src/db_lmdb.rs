@@ -173,7 +173,7 @@ pub struct BlockchainLMDB<'env, 'txn> {
 }
 
 impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
-    fn open(filename: &str, db_flags: i32) -> BlockchainLMDB {
+    pub fn open(filename: &str, db_flags: i32) -> BlockchainLMDB {
         let mut mdb_flags = EnvironmentFlags::NO_READAHEAD;
         let db_path = Path::new(filename);
         if db_path.exists() {
