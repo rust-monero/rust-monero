@@ -10,6 +10,7 @@ use lmdb::Database;
 use lmdb::DatabaseFlags;
 use lmdb::Environment;
 use lmdb::EnvironmentFlags;
+use lmdb::Cursor;
 use lmdb::RwCursor;
 use lmdb::RwTransaction;
 use lmdb::Transaction;
@@ -132,7 +133,7 @@ pub struct MdbRflags {
 //    check: bool,
 //}
 
-pub struct BlockchainLMDB<'env, 'txn> {
+pub struct BlockchainLMDB<'env> {
     pub db: BlockChainDBInfo,
 
     pub env: Environment,
@@ -174,7 +175,7 @@ pub struct BlockchainLMDB<'env, 'txn> {
     //  mutable boost::thread_specific_ptr<mdb_threadinfo> m_tinfo;
 }
 
-impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
+impl<'env> BlockchainLMDB<'env> {
     pub fn open(filename: &str, db_flags: i32) -> BlockchainLMDB {
         let mut mdb_flags = EnvironmentFlags::NO_READAHEAD;
         let db_path = Path::new(filename);
@@ -370,10 +371,12 @@ impl<'env, 'txn> BlockchainLMDB<'env, 'txn> {
     fn block_exists(self, h: &Hash, height: u64) -> Option<u64> {
         let txn = self.env.begin_ro_txn()
             .expect("get read only transaction failed when check block exists");
-        let cursor = txn.open_ro_cursor(self.blocks).unwrap();
-        let result = cursor.get(Some(&h[..]), None, MDB_SET);
+        let cursor = txn.open_ro_cursor(self.block_heights).unwrap();
+        let result = cursor.get(Some(&h.0[..]), None, MDB_GET_BOTH);
         if result.is_ok() {
+            let t = result.unwrap();
 
+            Some(1)
         } else {
             None
         }
