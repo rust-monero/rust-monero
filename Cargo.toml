@@ -13,7 +13,8 @@ members = [
     "src/cryptonote_config",
     "src/device",
     "src/ringct",
-    "src/checkpoints"
+    "src/checkpoints",
+    "src/levin"
 ]
 
 [dependencies]
