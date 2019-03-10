@@ -18,7 +18,6 @@ members = [
 ]
 
 [dependencies]
-lmdb = "0.8.0"
 db = {path = "src/db"}
 crypto = {path = "src/crypto"}
 cryptonote_basic = {path = "src/cryptonote_basic"}
@@ -27,3 +26,6 @@ cryptonote_config = {path = "src/cryptonote_config"}
 device = {path = "src/device"}
 ringct = {path = "src/ringct"}
 checkpoints = {path = "src/checkpoints"}
+levin = {path = "src/levin"}
+
+lmdb = "0.8.0"
