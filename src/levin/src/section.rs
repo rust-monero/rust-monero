@@ -22,21 +22,25 @@ pub enum SectionValue {
 
 
 impl Section {
-    fn new() -> Section {
+    pub fn new() -> Section {
         Section {
             entries: HashMap::new()
         }
     }
 
-    fn add(&mut self, key: String, value: SectionValue) {
+    pub fn add(&mut self, key: String, value: SectionValue) {
         self.entries.insert(key, value);
+    }
+
+    pub fn get(&self, key: &String) -> Option<&SectionValue> {
+        self.entries.get(key)
     }
 
 
     fn handshakeRequest() -> Section {
         let mut node_data = Section::new();
         node_data.add(String::from("local_time"), SectionValue::U64(Utc::now().timestamp_millis() as u64));
-        node_data.add(String::from("myport"), SectionValue::U32(0));
+        node_data.add(String::from("my_port"), SectionValue::U32(0));
 
         //TODO hex convert something
         //mainnet
@@ -68,11 +72,38 @@ impl Section {
 
 #[cfg(test)]
 mod tests {
-    use crate::section::Section;
+    use std::collections::HashMap;
+
+    use crate::section::{Section, SectionValue};
 
     #[test]
     fn it_works() {
         let s = Section::handshakeRequest();
         assert_eq!(false, s.entries.is_empty());
+
+        let v = s.get(&String::from("node_data")).unwrap();
+
+        match v {
+            &SectionValue::SECTION(ref p) => {
+                println!("success");
+            }
+            _ => {
+                println!("error");
+            }
+        }
+
+        match v {
+            SectionValue::SECTION(_) => println!("success"),
+            _ => println!("failed")
+        }
+    }
+
+    #[test]
+    fn test_hash_map() {
+        let mut m = HashMap::new();
+        m.insert(String::from("a"), 1);
+
+        let v = m.get(&String::from("a")).unwrap();
+        assert_eq!(&1, v);
     }
 }
