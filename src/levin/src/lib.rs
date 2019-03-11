@@ -1,7 +1,7 @@
 pub mod section;
 pub mod raw_size;
 
-
+#[derive(Debug)]
 pub enum LevinError {
     InvalidSerializeType(u8),
     OutOfBound(usize),

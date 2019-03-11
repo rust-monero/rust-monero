@@ -39,7 +39,7 @@ const SERIALIZE_TYPE_ARRAY: u8 = 13;
 
 const SERIALIZE_FLAG_ARRAY: u8 = 0x80;
 
-
+#[derive(Debug)]
 pub enum SectionValue {
     U8(u8),
     U16(u16),
@@ -52,7 +52,7 @@ pub enum SectionValue {
     Double(f64),
     Bool(bool),
     Bytes(Vec<u8>),
-    List(Vec<SectionValue>),
+    Array(Vec<SectionValue>),
     Section(Section),
 }
 
@@ -114,9 +114,6 @@ impl SectionValue {
             SERIALIZE_TYPE_ARRAY => {
                 ensure_eof!(buf, 1);
                 let serialize_type = buf.get_u8();
-                if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
-                    panic!();
-                }
                 SectionValue::read_list(buf, serialize_type)?
             }
             _ => {
@@ -127,7 +124,6 @@ impl SectionValue {
     }
 
     fn read_list(buf: &mut Buf, mut serialize_type: u8) -> Result<SectionValue, LevinError> {
-        let origin_type = serialize_type;
         if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
             return Err(LevinError::ErrorArrayType(serialize_type));
         } else {
@@ -137,9 +133,10 @@ impl SectionValue {
 
         let mut list: Vec<SectionValue> = Vec::with_capacity(size);
         for _ in 0..size {
+            buf.get_u8();
             list.push(SectionValue::read_with_type(buf, serialize_type)?)
         }
-        Ok(SectionValue::List(list))
+        Ok(SectionValue::Array(list))
     }
     //copy from xmr
     fn write(&self, buf: &mut BytesMut) {
@@ -197,13 +194,12 @@ impl SectionValue {
             SectionValue::Bytes(v) => {
                 buf.reserve(1);
                 buf.put_u8(SERIALIZE_TYPE_STRING);
-                write_buf(buf, v)
+                write_buf(buf, v);
             }
-            SectionValue::List(v) => {
-                //TODO
-//                buf.reserve(1);
-//                buf.put_u8(SERIALIZE_TYPE_ARRAY);
-//                Array::write(buf, v)
+            SectionValue::Array(v) => {
+                buf.reserve(1);
+                buf.put_u8(SERIALIZE_TYPE_ARRAY);
+                SectionValue::write_list(buf, v);
             }
             SectionValue::Section(v) => {
                 buf.reserve(1);
@@ -212,9 +208,36 @@ impl SectionValue {
             }
         }
     }
+
+    fn write_list(buf: &mut BytesMut, list: &Vec<SectionValue>) {
+        buf.reserve(1);
+        buf.put_u8(list.get(0).unwrap().serialize_type() | SERIALIZE_FLAG_ARRAY);
+        raw_size::write(buf, list.len());
+        for v in list.iter() {
+            v.write(buf);
+        }
+    }
+
+    fn serialize_type(&self) -> u8 {
+        match self {
+            SectionValue::I8(_) => SERIALIZE_TYPE_INT8,
+            SectionValue::I16(_) => SERIALIZE_TYPE_INT16,
+            SectionValue::I32(_) => SERIALIZE_TYPE_INT32,
+            SectionValue::I64(_) => SERIALIZE_TYPE_INT64,
+            SectionValue::U8(_) => SERIALIZE_TYPE_UINT8,
+            SectionValue::U16(_) => SERIALIZE_TYPE_UINT16,
+            SectionValue::U32(_) => SERIALIZE_TYPE_UINT32,
+            SectionValue::U64(_) => SERIALIZE_TYPE_UINT64,
+            SectionValue::Double(_) => SERIALIZE_TYPE_DOUBLE,
+            SectionValue::Bool(_) => SERIALIZE_TYPE_BOOL,
+            SectionValue::Bytes(_) => SERIALIZE_TYPE_STRING,
+            SectionValue::Array(_) => SERIALIZE_TYPE_ARRAY,
+            SectionValue::Section(_) => SERIALIZE_TYPE_OBJECT,
+        }
+    }
 }
 
-
+#[derive(Debug)]
 pub struct Section {
     pub entries: HashMap<String, SectionValue>
 }
@@ -240,6 +263,17 @@ impl Section {
             write_name(buf, name);
             entry.write(buf);
         }
+    }
+    pub fn read(buf: &mut Buf) -> Result<Section, LevinError> {
+        let mut section = Section::new();
+        let count = raw_size::read(buf)?;
+        section.entries.reserve(count);
+        for _ in 0..count {
+            let name = read_name(buf)?;
+            let entry = SectionValue::read(buf)?;
+            section.add(name, entry);
+        }
+        Ok(section)
     }
 
     fn handshake_request() -> Section {
@@ -275,7 +309,7 @@ impl Section {
 }
 
 
-fn read_name<B: Buf>(buf: &mut B) -> Result<String, LevinError> {
+fn read_name(buf: &mut Buf) -> Result<String, LevinError> {
     ensure_eof!(buf, 1);
     let length = buf.get_u8() as usize;
     ensure_eof!(buf, length);
@@ -314,26 +348,65 @@ mod tests {
     use std::collections::HashMap;
 
     use crate::section::{Section, SectionValue};
+    use crate::raw_size::*;
+
+    use super::bytes::{BytesMut, IntoBuf};
+    use crate::raw_size;
 
     #[test]
     fn it_works() {
-        let s = Section::handshake_request();
-        assert_eq!(false, s.entries.is_empty());
+        let mut s = Section::new();
+        s.add(String::from("a"), SectionValue::I8(1));
+        s.add(String::from("b"), SectionValue::U8(1));
 
-        let v = s.get(&String::from("node_data")).unwrap();
+        let mut vec = Vec::new();
+        vec.push(SectionValue::U8(4 as u8));
+        vec.push(SectionValue::U8(2 as u8));
+        s.add(String::from("c"), SectionValue::Array(vec));
+        println!("origin data: {:?}", s);
+        let mut b = BytesMut::new();
+        s.write(&mut b);
 
-        match v {
-            &SectionValue::Section(ref p) => {
-                println!("success");
+        println!("write bytes, len:{}, data: {:?}", &b.len(), &b);
+
+        let mut buf = b.into_buf();
+
+        let read_result = Section::read(&mut buf);
+        match read_result {
+            Ok(s1) => {
+                println!("{:?}", s1);
+                let v = s1.get(&String::from("a")).unwrap();
+                match v {
+                    &SectionValue::I8(ref p) => {
+                        println!("success, {}", p);
+                    }
+                    _ => {
+                        println!("error");
+                    }
+                }
+                let v1 = s1.get(&String::from("c")).unwrap();
+                match v1 {
+                    SectionValue::Array(array) => {
+                        println!("success, {}", array.len());
+                    }
+                    _ => {
+                        println!("failed to read the array");
+                    }
+                }
             }
-            _ => {
-                println!("error");
+            Err(e) => {
+                println!("{:?}", e)
             }
         }
 
-        match v {
-            SectionValue::Section(_) => println!("success"),
-            _ => println!("failed")
+        #[test]
+        fn test_raw_size() {
+            let a = 1;
+            let mut b = BytesMut::new();
+            raw_size::write(&mut b, a);
+            let mut buf = b.into_buf();
+            let ret = raw_size::read(&mut buf).unwrap();
+            assert_eq!(ret, a);
         }
     }
 }
