@@ -1,13 +1,15 @@
+extern crate bytes;
 extern crate hex;
 extern crate rand;
-extern crate bytes;
 
 use std::collections::HashMap;
 
 use bytes::{Buf, BufMut, BytesMut, LittleEndian};
-
 use chrono::Utc;
 use rand::Rng;
+
+use crate::{LevinError, raw_size};
+use crate::*;
 
 // constants copied from monero p2p & epee
 
@@ -16,11 +18,6 @@ const PORTABLE_STORAGE_SIGNATUREB: u32 = 0x01020101;
 
 const PORTABLE_STORAGE_FORMAT_VER: u8 = 1;
 
-const PORTABLE_RAW_SIZE_MARK_MASK: u8 = 0x03;
-const PORTABLE_RAW_SIZE_MARK_BYTE: u8 = 0;
-const PORTABLE_RAW_SIZE_MARK_WORD: u8 = 1;
-const PORTABLE_RAW_SIZE_MARK_DWORD: u8 = 2;
-const PORTABLE_RAW_SIZE_MARK_INT64: u8 = 3;
 
 // do not let string be so big
 const MAX_STRING_LEN_POSSIBLE: u64 = 2000000000;
@@ -114,10 +111,9 @@ impl SectionValue {
                 buf.put_u8(if *v == false { 0 } else { 1 });
             }
             SectionValue::Bytes(v) => {
-                //TODO
-//                buf.reserve(1);
-//                buf.put_u8(SERIALIZE_TYPE_STRING);
-//                write_buf(buf, v)
+                buf.reserve(1);
+                buf.put_u8(SERIALIZE_TYPE_STRING);
+                write_buf(buf, v)
             }
             SectionValue::List(v) => {
                 //TODO
@@ -127,8 +123,8 @@ impl SectionValue {
             }
             SectionValue::Section(v) => {
                 //TODO
-//                buf.reserve(1);
-//                buf.put_u8(SERIALIZE_TYPE_OBJECT);
+                buf.reserve(1);
+                buf.put_u8(SERIALIZE_TYPE_OBJECT);
 //                Section::write(buf, v);
             }
         }
@@ -155,7 +151,15 @@ impl Section {
         self.entries.get(key)
     }
 
-    fn handshakeRequest() -> Section {
+    pub fn write(&self, buf: &mut BytesMut) {
+        raw_size::write(buf, self.entries.len());
+        for (name, entry) in self.entries.iter() {
+            write_name(buf, name);
+            entry.write(buf);
+        }
+    }
+
+    fn handshake_request() -> Section {
         let mut node_data = Section::new();
         node_data.add(String::from("local_time"), SectionValue::U64(Utc::now().timestamp_millis() as u64));
         node_data.add(String::from("my_port"), SectionValue::U32(0));
@@ -188,6 +192,40 @@ impl Section {
 }
 
 
+fn read_name<B: Buf>(buf: &mut B) -> Result<String, LevinError> {
+    ensure_eof!(buf, 1);
+    let length = buf.get_u8() as usize;
+    ensure_eof!(buf, length);
+
+    let s = String::from_utf8_lossy(&buf.bytes()[..length]).into_owned();
+    buf.advance(length);
+    Ok(s)
+}
+
+fn read_buf<B: Buf>(buf: &mut B) -> Result<Vec<u8>, LevinError> {
+    let length = raw_size::read(buf)?;
+    ensure_eof!(buf, length);
+
+    let mut b = Vec::with_capacity(length);
+    b.extend_from_slice(&buf.bytes()[..length]);
+    buf.advance(length);
+    Ok(b)
+}
+
+fn write_buf(buf: &mut BytesMut, b: &Vec<u8>) {
+    raw_size::write(buf, b.len());
+
+    buf.reserve(b.len());
+    buf.put(b.as_slice());
+}
+
+fn write_name(buf: &mut BytesMut, name: &str) {
+    buf.reserve(name.as_bytes().len() + 1);
+    buf.put_u8(name.as_bytes().len() as u8);
+    buf.put(name.as_bytes());
+}
+
+
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
@@ -196,7 +234,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let s = Section::handshakeRequest();
+        let s = Section::handshake_request();
         assert_eq!(false, s.entries.is_empty());
 
         let v = s.get(&String::from("node_data")).unwrap();
