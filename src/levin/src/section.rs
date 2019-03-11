@@ -4,7 +4,7 @@ extern crate rand;
 
 use std::collections::HashMap;
 
-use bytes::{Buf, BufMut, BytesMut, LittleEndian};
+use bytes::{Buf, BufMut, BytesMut, Bytes};
 use chrono::Utc;
 use rand::Rng;
 
@@ -57,6 +57,90 @@ pub enum SectionValue {
 }
 
 impl SectionValue {
+    fn read(buf: &mut Buf) -> Result<SectionValue, LevinError> {
+        let serialize_type = buf.get_u8();
+        SectionValue::read_with_type(buf, serialize_type)
+    }
+
+    fn read_with_type(buf: &mut Buf, serialize_type: u8) -> Result<SectionValue, LevinError> {
+        let entry = match serialize_type {
+            SERIALIZE_TYPE_INT8 => {
+                ensure_eof!(buf, 1);
+                SectionValue::I8(buf.get_i8())
+            }
+            SERIALIZE_TYPE_INT16 => {
+                ensure_eof!(buf, 2);
+                SectionValue::I16(buf.get_i16_le())
+            }
+            SERIALIZE_TYPE_INT32 => {
+                ensure_eof!(buf, 4);
+                SectionValue::I32(buf.get_i32_le())
+            }
+            SERIALIZE_TYPE_INT64 => {
+                ensure_eof!(buf, 8);
+                SectionValue::I64(buf.get_i64_le())
+            }
+            SERIALIZE_TYPE_UINT8 => {
+                ensure_eof!(buf, 1);
+                SectionValue::U8(buf.get_u8())
+            }
+            SERIALIZE_TYPE_UINT16 => {
+                ensure_eof!(buf, 2);
+                SectionValue::U16(buf.get_u16_le())
+            }
+            SERIALIZE_TYPE_UINT32 => {
+                ensure_eof!(buf, 4);
+                SectionValue::U32(buf.get_u32_le())
+            }
+            SERIALIZE_TYPE_UINT64 => {
+                ensure_eof!(buf, 8);
+                SectionValue::U64(buf.get_u64_le())
+            }
+            SERIALIZE_TYPE_DOUBLE => {
+                ensure_eof!(buf, 8);
+                SectionValue::Double(buf.get_f64_le())
+            }
+            SERIALIZE_TYPE_STRING => {
+                let b = read_buf::<Buf>(buf)?;
+                SectionValue::Bytes(b)
+            }
+            SERIALIZE_TYPE_BOOL => {
+                ensure_eof!(buf, 1);
+                SectionValue::Bool(buf.get_u8() != 0)
+            }
+            SERIALIZE_TYPE_OBJECT => {
+                SectionValue::read(buf)?
+            }
+            SERIALIZE_TYPE_ARRAY => {
+                ensure_eof!(buf, 1);
+                let serialize_type = buf.get_u8();
+                if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
+                    panic!();
+                }
+                SectionValue::read_list(buf, serialize_type)?
+            },
+            _ => {
+                return Err(LevinError::InvalidSerializeType(serialize_type));
+            }
+        };
+        Ok(entry)
+    }
+
+    fn read_list(buf: &mut Buf, serialize_type: u8) -> Result<SectionValue, LevinError> {
+        let origin_type = serialize_type;
+        if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
+            return Err(LevinError::ErrorArrayType(serialize_type));
+        } else {
+            serialize_type &= !SERIALIZE_FLAG_ARRAY;
+        }
+        let size = raw_size::read(buf)?;
+
+        let mut list: Vec<SectionValue> = Vec::with_capacity(size);
+        for _ in 0..size {
+            list.push(SectionValue::read_with_type(buf, serialize_type)?)
+        }
+        Ok(SectionValue::List(list))
+    }
     //copy from xmr
     fn write(&self, buf: &mut BytesMut) {
         match self {
@@ -122,10 +206,9 @@ impl SectionValue {
 //                Array::write(buf, v)
             }
             SectionValue::Section(v) => {
-                //TODO
                 buf.reserve(1);
                 buf.put_u8(SERIALIZE_TYPE_OBJECT);
-//                Section::write(buf, v);
+                Section::write(v, buf);
             }
         }
     }

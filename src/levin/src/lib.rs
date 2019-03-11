@@ -3,7 +3,9 @@ pub mod raw_size;
 
 
 pub enum LevinError {
+    InvalidSerializeType(u8),
     OutOfBound(usize),
+    ErrorArrayType(u8)
 }
 
 #[macro_export]
