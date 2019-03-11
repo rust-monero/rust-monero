@@ -4,7 +4,7 @@ extern crate rand;
 
 use std::collections::HashMap;
 
-use bytes::{Buf, BufMut, BytesMut, Bytes};
+use bytes::{Buf, BufMut, Bytes, BytesMut};
 use chrono::Utc;
 use rand::Rng;
 
@@ -101,7 +101,7 @@ impl SectionValue {
                 SectionValue::Double(buf.get_f64_le())
             }
             SERIALIZE_TYPE_STRING => {
-                let b = read_buf::<Buf>(buf)?;
+                let b = read_buf(buf)?;
                 SectionValue::Bytes(b)
             }
             SERIALIZE_TYPE_BOOL => {
@@ -118,7 +118,7 @@ impl SectionValue {
                     panic!();
                 }
                 SectionValue::read_list(buf, serialize_type)?
-            },
+            }
             _ => {
                 return Err(LevinError::InvalidSerializeType(serialize_type));
             }
@@ -126,7 +126,7 @@ impl SectionValue {
         Ok(entry)
     }
 
-    fn read_list(buf: &mut Buf, serialize_type: u8) -> Result<SectionValue, LevinError> {
+    fn read_list(buf: &mut Buf, mut serialize_type: u8) -> Result<SectionValue, LevinError> {
         let origin_type = serialize_type;
         if serialize_type & SERIALIZE_FLAG_ARRAY != SERIALIZE_FLAG_ARRAY {
             return Err(LevinError::ErrorArrayType(serialize_type));
@@ -285,7 +285,7 @@ fn read_name<B: Buf>(buf: &mut B) -> Result<String, LevinError> {
     Ok(s)
 }
 
-fn read_buf<B: Buf>(buf: &mut B) -> Result<Vec<u8>, LevinError> {
+fn read_buf(buf: &mut Buf) -> Result<Vec<u8>, LevinError> {
     let length = raw_size::read(buf)?;
     ensure_eof!(buf, length);
 
