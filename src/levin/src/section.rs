@@ -109,7 +109,8 @@ impl SectionValue {
                 SectionValue::Bool(buf.get_u8() != 0)
             }
             SERIALIZE_TYPE_OBJECT => {
-                SectionValue::read(buf)?
+                let s = Section::read(buf)?;
+                SectionValue::Section(s)
             }
             SERIALIZE_TYPE_ARRAY => {
                 ensure_eof!(buf, 1);
@@ -347,11 +348,11 @@ fn write_name(buf: &mut BytesMut, name: &str) {
 mod tests {
     use std::collections::HashMap;
 
-    use crate::section::{Section, SectionValue};
     use crate::raw_size::*;
+    use crate::raw_size;
+    use crate::section::{Section, SectionValue};
 
     use super::bytes::{BytesMut, IntoBuf};
-    use crate::raw_size;
 
     #[test]
     fn it_works() {
@@ -398,15 +399,60 @@ mod tests {
                 println!("{:?}", e)
             }
         }
+    }
 
-        #[test]
-        fn test_raw_size() {
-            let a = 1;
-            let mut b = BytesMut::new();
-            raw_size::write(&mut b, a);
-            let mut buf = b.into_buf();
-            let ret = raw_size::read(&mut buf).unwrap();
-            assert_eq!(ret, a);
+    #[test]
+    fn test_object_parse() {
+        println!("111");
+        let num = 112233;
+        let mut s = Section::new();
+        s.add(String::from("a"), SectionValue::U64(num));
+
+        let mut s1 = Section::new();
+        s1.add(String::from("b"), SectionValue::Section(s));
+        println!("origin data: {:?}", s1);
+        let mut b = BytesMut::new();
+        s1.write(&mut b);
+        println!("write bytes, len:{}, data: {:?}", &b.len(), &b);
+
+        let mut buf = b.into_buf();
+        match Section::read(&mut buf) {
+            Ok(ret) => {
+                println!("data: {:?}", ret);
+                assert_eq!(ret.entries.len(), 1);
+                ret.entries.get(&String::from("b"))
+                    .map(|a| {
+                        match a {
+                            SectionValue::Section(b) => {
+                                assert_eq!(b.entries.len(), 1);
+                                b.entries.get(&String::from("a"))
+                                    .map(|a| {
+                                        match a {
+                                            SectionValue::U64(value) => {
+                                                assert_eq!(value, &num);
+                                            },
+                                            _ => unreachable!()
+                                        }
+                                    });
+                            }
+                            _ => unreachable!()
+                        }
+                    });
+            }
+            Err(e) => {
+                println!("{:?}", e);
+                assert_eq!(1, 3);
+            }
         }
+    }
+
+    #[test]
+    fn test_raw_size() {
+        let a = 1;
+        let mut b = BytesMut::new();
+        raw_size::write(&mut b, a);
+        let mut buf = b.into_buf();
+        let ret = raw_size::read(&mut buf).unwrap();
+        assert_eq!(ret, a);
     }
 }
