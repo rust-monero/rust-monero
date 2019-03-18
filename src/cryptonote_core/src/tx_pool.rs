@@ -4,12 +4,12 @@ use std::collections::HashSet;
 
 use tokio::timer::Interval;
 
+use crate::blockchain::Blockchain;
 use crypto::crypto::KeyImage;
 use crypto::hash::Hash;
-use std::sync::atomic::AtomicPtr;
-use crate::blockchain::Blockchain;
 use cryptonote_basic::verification_context::TxVerificationContext;
 use std::iter::Map;
+use std::sync::atomic::AtomicPtr;
 
 pub struct TxByFeeAndReceiveTimeEntry((f64, u64), Hash);
 

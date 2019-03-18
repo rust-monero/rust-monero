@@ -1,6 +1,6 @@
 use crate::block::AccountPublicAddress;
-use crypto::crypto::SecretKey;
 use crypto::chacha::ChaChaIV;
+use crypto::crypto::SecretKey;
 use device::Device;
 
 pub struct AccountKeys {
@@ -9,10 +9,10 @@ pub struct AccountKeys {
     vew_secret_key: SecretKey,
     multisig_keys: Vec<SecretKey>,
     device: Device,
-    m_encryption_iv: ChaChaIV
+    m_encryption_iv: ChaChaIV,
 }
 
 pub struct AccountBase {
     keys: AccountKeys,
-    creation_timestamp: u64
+    creation_timestamp: u64,
 }

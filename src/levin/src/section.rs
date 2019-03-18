@@ -8,8 +8,8 @@ use bytes::{Buf, BufMut, Bytes, BytesMut};
 use chrono::Utc;
 use rand::Rng;
 
-use crate::{LevinError, raw_size};
 use crate::*;
+use crate::{raw_size, LevinError};
 
 // constants copied from monero p2p & epee
 
@@ -17,7 +17,6 @@ const PORTABLE_STORAGE_SIGNATUREA: u32 = 0x01011101;
 const PORTABLE_STORAGE_SIGNATUREB: u32 = 0x01020101;
 
 const PORTABLE_STORAGE_FORMAT_VER: u8 = 1;
-
 
 // do not let string be so big
 const MAX_STRING_LEN_POSSIBLE: u64 = 2000000000;
@@ -240,13 +239,13 @@ impl SectionValue {
 
 #[derive(Debug)]
 pub struct Section {
-    pub entries: HashMap<String, SectionValue>
+    pub entries: HashMap<String, SectionValue>,
 }
 
 impl Section {
     pub fn new() -> Section {
         Section {
-            entries: HashMap::new()
+            entries: HashMap::new(),
         }
     }
 
@@ -279,7 +278,10 @@ impl Section {
 
     fn handshake_request() -> Section {
         let mut node_data = Section::new();
-        node_data.add(String::from("local_time"), SectionValue::U64(Utc::now().timestamp_millis() as u64));
+        node_data.add(
+            String::from("local_time"),
+            SectionValue::U64(Utc::now().timestamp_millis() as u64),
+        );
         node_data.add(String::from("my_port"), SectionValue::U32(0));
 
         //TODO hex convert something
@@ -291,24 +293,29 @@ impl Section {
         let peer_id = rng.gen::<u64>();
         node_data.add(String::from("peer_id"), SectionValue::U64(peer_id));
 
-
         //payload_data
         let mut payload_data = Section::new();
         payload_data.add(String::from("cumulative_difficulty"), SectionValue::U64(1));
         payload_data.add(String::from("current_height"), SectionValue::U64(1));
 
-
-        let genesis_hash = hex::decode("418015bb9ae982a1975da7d79277c2705727a56894ba0fb246adaabb1f4632e3").unwrap();
+        let genesis_hash =
+            hex::decode("418015bb9ae982a1975da7d79277c2705727a56894ba0fb246adaabb1f4632e3")
+                .unwrap();
         payload_data.add(String::from("top_id"), SectionValue::Bytes(genesis_hash));
-        payload_data.add(String::from("top_version"), SectionValue::Bytes(vec!(1 as u8)));
+        payload_data.add(
+            String::from("top_version"),
+            SectionValue::Bytes(vec![1 as u8]),
+        );
 
         let mut section = Section::new();
         section.add(String::from("node_data"), SectionValue::Section(node_data));
-        section.add(String::from("payload_data"), SectionValue::Section(payload_data));
+        section.add(
+            String::from("payload_data"),
+            SectionValue::Section(payload_data),
+        );
         return section;
     }
 }
-
 
 fn read_name(buf: &mut Buf) -> Result<String, LevinError> {
     ensure_eof!(buf, 1);
@@ -343,13 +350,12 @@ fn write_name(buf: &mut BytesMut, name: &str) {
     buf.put(name.as_bytes());
 }
 
-
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
 
-    use crate::raw_size::*;
     use crate::raw_size;
+    use crate::raw_size::*;
     use crate::section::{Section, SectionValue};
 
     use super::bytes::{BytesMut, IntoBuf};
@@ -395,15 +401,12 @@ mod tests {
                     }
                 }
             }
-            Err(e) => {
-                println!("{:?}", e)
-            }
+            Err(e) => println!("{:?}", e),
         }
     }
 
     #[test]
     fn test_object_parse() {
-        println!("111");
         let num = 112233;
         let mut s = Section::new();
         s.add(String::from("a"), SectionValue::U64(num));
@@ -420,24 +423,18 @@ mod tests {
             Ok(ret) => {
                 println!("data: {:?}", ret);
                 assert_eq!(ret.entries.len(), 1);
-                ret.entries.get(&String::from("b"))
-                    .map(|a| {
-                        match a {
-                            SectionValue::Section(b) => {
-                                assert_eq!(b.entries.len(), 1);
-                                b.entries.get(&String::from("a"))
-                                    .map(|a| {
-                                        match a {
-                                            SectionValue::U64(value) => {
-                                                assert_eq!(value, &num);
-                                            },
-                                            _ => unreachable!()
-                                        }
-                                    });
+                ret.entries.get(&String::from("b")).map(|a| match a {
+                    SectionValue::Section(b) => {
+                        assert_eq!(b.entries.len(), 1);
+                        b.entries.get(&String::from("a")).map(|a| match a {
+                            SectionValue::U64(value) => {
+                                assert_eq!(value, &num);
                             }
-                            _ => unreachable!()
-                        }
-                    });
+                            _ => unreachable!(),
+                        });
+                    }
+                    _ => unreachable!(),
+                });
             }
             Err(e) => {
                 println!("{:?}", e);

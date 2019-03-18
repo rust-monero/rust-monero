@@ -3,34 +3,32 @@ pub struct EcPoint(pub [u8; 32]);
 pub struct EcScalar(pub [u8; 32]);
 
 pub struct PublicKey {
-    ec_point: EcPoint
+    ec_point: EcPoint,
 }
 //TODO
-pub struct SecretKey {
-
-}
+pub struct SecretKey {}
 
 pub struct PublicKeyV {
     keys: Vec<PublicKey>,
-    rows: u32
+    rows: u32,
 }
 
 pub struct SecretKeyV {
     keys: Vec<SecretKey>,
-    rows: u32
+    rows: u32,
 }
 
 pub struct PublicKeyM {
     cols: u32,
     rows: u32,
-    column_vectors: Vec<SecretKeyV>
+    column_vectors: Vec<SecretKeyV>,
 }
 
 pub struct KeyDerivation {
-    ec_point: EcPoint
+    ec_point: EcPoint,
 }
 pub struct KeyImage {
-    ec_point: EcPoint
+    ec_point: EcPoint,
 }
 pub struct Signature {
     c: EcScalar,
@@ -49,4 +47,3 @@ pub struct Signature {
 //ec_scalar c, r;
 //friend class crypto_ops;
 //};
-

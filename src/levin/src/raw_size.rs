@@ -27,7 +27,7 @@ pub fn read(buf: &mut Buf) -> Result<usize, LevinError> {
             ensure_eof!(buf, 8);
             Ok((buf.get_u64_le() >> 2) as usize)
         }
-        _ => unreachable!()
+        _ => unreachable!(),
     }
 }
 

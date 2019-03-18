@@ -19,11 +19,11 @@ pub struct TxExtraPadding {
 }
 
 pub struct TxExtraPubKey {
-    pub_key: PublicKey
+    pub_key: PublicKey,
 }
 
 pub struct TxExtraNonce {
-    nonce: String
+    nonce: String,
 }
 
 pub struct TxExtraMergeMiningTag {
@@ -32,11 +32,11 @@ pub struct TxExtraMergeMiningTag {
 }
 
 pub struct TxExtraAdditionalPubKeys {
-    data: Vec<PublicKey>
+    data: Vec<PublicKey>,
 }
 
 pub struct TxExtraMysteriousMinergate {
-    data: String
+    data: String,
 }
 
 pub enum TxExtraField {
@@ -45,5 +45,5 @@ pub enum TxExtraField {
     TxExtraNonce(TxExtraNonce),
     TxExtraMergeMiningTag(TxExtraMergeMiningTag),
     TxExtraAdditionalPubKeys(TxExtraAdditionalPubKeys),
-    TxExtraMysteriousMinergate(TxExtraMysteriousMinergate)
+    TxExtraMysteriousMinergate(TxExtraMysteriousMinergate),
 }

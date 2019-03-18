@@ -11,7 +11,7 @@ pub struct BlockHeader {
     minor_version: u8,
     timestamp: u64,
     prev_id: Hash,
-    nonce: u32
+    nonce: u32,
 }
 
 pub struct Block {
@@ -25,10 +25,10 @@ pub struct Block {
 
 pub struct AccountPublicAddress {
     spend_public_key: PublicKey,
-    vew_public_key: PublicKey
+    vew_public_key: PublicKey,
 }
 
 pub struct KeyPair {
     public_key: PublicKey,
-    secret_key: SecretKey
+    secret_key: SecretKey,
 }

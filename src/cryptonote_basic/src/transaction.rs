@@ -1,7 +1,7 @@
 use crate::transaction_prefix::TransactionPrefix;
-use std::sync::atomic::AtomicBool;
 use crypto::crypto::Signature;
 use crypto::hash::Hash;
+use std::sync::atomic::AtomicBool;
 
 pub struct Transaction {
     prefix: TransactionPrefix,
@@ -11,7 +11,6 @@ pub struct Transaction {
     signatures: Vec<Vec<Signature>>,
     //TODO  ringct
     //rct::rctSig rct_signatures;
-
     hash: Hash,
-    blob_size: usize
+    blob_size: usize,
 }

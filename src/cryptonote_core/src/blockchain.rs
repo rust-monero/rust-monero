@@ -71,7 +71,6 @@ pub struct Blockchain {
     difficulty_for_next_block_top_hash: Hash,
     difficulty_for_next_block: DifficultyType,
 
-
     //TODO
     //boost::asio::io_service m_async_service;
     //boost::thread_group m_async_pool;

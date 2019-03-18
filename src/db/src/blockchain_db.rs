@@ -2,14 +2,14 @@ use crypto::crypto::PublicKey;
 use crypto::hash::Hash;
 use cryptonote_basic::block::Block;
 use cryptonote_basic::difficulty::DifficultyType;
-use cryptonote_basic::transaction::Transaction;
 use cryptonote_basic::hard_fork::HardFork;
+use cryptonote_basic::transaction::Transaction;
 
 pub struct OutputData {
     pubkey: PublicKey,
     unlock_time: u64,
     height: u64,
-//    commitment: rct:key;
+    //    commitment: rct:key;
 }
 
 pub struct TxData {
@@ -100,9 +100,15 @@ pub trait BlockChainDB {
      * @param tx_prunable_hash the hash of the prunable part of the transaction
      * @return the transaction ID
      */
-    fn add_block(&self, blk: &Block, block_weight: usize,
-                 cumulative_difficulty: DifficultyType, coins_generated: u64, num_rct_outs: u64,
-                 blk_hash: &Hash);
+    fn add_block(
+        &self,
+        blk: &Block,
+        block_weight: usize,
+        cumulative_difficulty: DifficultyType,
+        coins_generated: u64,
+        num_rct_outs: u64,
+        blk_hash: &Hash,
+    );
 
     /**
      * @brief remove data about the top block
@@ -136,7 +142,13 @@ pub trait BlockChainDB {
      * @param tx_prunable_hash the hash of the prunable part of the transaction
      * @return the transaction ID
      */
-    fn add_transaction_data(&self, blk_hash: &Hash, tx: &Transaction, tx_hash: &Hash, tx_prunable_hash: &Hash) -> u64;
+    fn add_transaction_data(
+        &self,
+        blk_hash: &Hash,
+        tx: &Transaction,
+        tx_hash: &Hash,
+        tx_prunable_hash: &Hash,
+    ) -> u64;
 
     /**
      * @brief remove data about a transaction

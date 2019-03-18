@@ -1,15 +1,15 @@
-use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::AtomicPtr;
+use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread::Thread;
 
 use tokio::timer::Interval;
 
-use crate::BlobData;
 use crate::block::AccountPublicAddress;
 use crate::block::Block;
 use crate::difficulty::DifficultyType;
+use crate::BlobData;
 
 const BACKGROUND_MINING_DEFAULT_IDLE_THRESHOLD_PERCENTAGE: u8 = 90;
 const BACKGROUND_MINING_MIN_IDLE_THRESHOLD_PERCENTAGE: u8 = 50;
@@ -26,13 +26,20 @@ const BACKGROUND_MINING_DEFAULT_MINER_EXTRA_SLEEP_MILLIS: u64 = 400;
 const BACKGROUND_MINING_MIN_MINER_EXTRA_SLEEP_MILLIS: u64 = 5;
 
 struct MinerConfig {
-    current_extra_message_index: u64
+    current_extra_message_index: u64,
 }
 
 pub trait MinerHandler {
     fn handle_block_found(&self, b: &Block) -> bool;
-    fn get_block_template(&self, b: &Block, adr: AccountPublicAddress, diffic: &DifficultyType,
-                          height: u64, expected_reward: u64, ex_nonce: BlobData) -> bool;
+    fn get_block_template(
+        &self,
+        b: &Block,
+        adr: AccountPublicAddress,
+        diffic: &DifficultyType,
+        height: u64,
+        expected_reward: u64,
+        ex_nonce: BlobData,
+    ) -> bool;
 }
 
 struct Miner {
@@ -81,5 +88,4 @@ struct Miner {
     idle_threshold: u64,
     mining_target: u64,
     miner_extra_sleep: AtomicPtr<u64>,
-
 }

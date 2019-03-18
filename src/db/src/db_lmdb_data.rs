@@ -2,8 +2,8 @@ use crypto::crypto::PublicKey;
 use crypto::hash::Hash;
 use cryptonote_basic::difficulty::DifficultyType;
 
-use crate::blockchain_db::TxData;
 use crate::blockchain_db::OutputData;
+use crate::blockchain_db::TxData;
 
 pub struct MdbBlockInfoOld {
     height: u64,
@@ -13,7 +13,6 @@ pub struct MdbBlockInfoOld {
     diff: DifficultyType,
     hash: Hash,
 }
-
 
 pub struct MdbBlockInfo {
     pub height: u64,
@@ -47,22 +46,17 @@ pub struct PreRctOutputData {
 pub struct PreRctOutKey {
     pub amount_index: u64,
     pub output_id: u64,
-    pub data: PreRctOutputData
+    pub data: PreRctOutputData,
 }
 
 pub struct OutKey {
     pub amount_index: u64,
     pub output_id: u64,
-    pub data: OutputData
+    pub data: OutputData,
 }
 
 pub struct OutTx {
     pub output_id: u64,
     pub tx_hash: Hash,
-    pub local_index: u64
+    pub local_index: u64,
 }
-
-
-
-
-

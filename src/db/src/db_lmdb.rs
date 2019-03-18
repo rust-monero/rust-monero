@@ -2,15 +2,15 @@ use std::fs;
 use std::fs::File;
 use std::os::raw::c_uint;
 use std::path::Path;
-use std::sync::Arc;
 use std::sync::atomic::AtomicPtr;
+use std::sync::Arc;
 use std::thread::Thread;
 
+use lmdb::Cursor;
 use lmdb::Database;
 use lmdb::DatabaseFlags;
 use lmdb::Environment;
 use lmdb::EnvironmentFlags;
-use lmdb::Cursor;
 use lmdb::RwCursor;
 use lmdb::RwTransaction;
 use lmdb::Transaction;
@@ -168,10 +168,9 @@ pub struct BlockchainLMDB<'env> {
     write_txn: Option<RwTransaction<'env>>,
     write_batch_txn: Option<RwTransaction<'env>>,
     //  boost::thread::id m_writer;
-
     batch_transactions: bool,
     batch_active: bool,
-//    wcursors: Option<MdbTxnCursors<'txn>>, //may not need this
+    //    wcursors: Option<MdbTxnCursors<'txn>>, //may not need this
     //  mutable boost::thread_specific_ptr<mdb_threadinfo> m_tinfo;
 }
 
@@ -181,33 +180,50 @@ impl<'env> BlockchainLMDB<'env> {
         let db_path = Path::new(filename);
         if db_path.exists() {
             if !db_path.is_dir() {
-                panic!("LMDB needs a directory path, but a file was passed, filename = {}", filename);
+                panic!(
+                    "LMDB needs a directory path, but a file was passed, filename = {}",
+                    filename
+                );
             }
         } else {
             match fs::create_dir_all(db_path) {
                 Err(_) => panic!("Failed to create directory {}", filename),
-                Ok(_) => info!("create file success")
+                Ok(_) => info!("create file success"),
             }
         }
         let parent_path = db_path.parent().unwrap();
-        if parent_path.join(CRYPTONOTE_BLOCKCHAINDATA_FILENAME).exists() ||
-            parent_path.join(CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME).exists() {
-            error!("Found existing LMDB files in {}", parent_path.to_str().unwrap());
-            error!("Move {} and/or {} to {}, or delete them, and then restart",
-                   CRYPTONOTE_BLOCKCHAINDATA_FILENAME, CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME, filename);
+        if parent_path
+            .join(CRYPTONOTE_BLOCKCHAINDATA_FILENAME)
+            .exists()
+            || parent_path
+                .join(CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME)
+                .exists()
+        {
+            error!(
+                "Found existing LMDB files in {}",
+                parent_path.to_str().unwrap()
+            );
+            error!(
+                "Move {} and/or {} to {}, or delete them, and then restart",
+                CRYPTONOTE_BLOCKCHAINDATA_FILENAME,
+                CRYPTONOTE_BLOCKCHAINDATA_LOCK_FILENAME,
+                filename
+            );
             panic!("Database could not be opened");
         }
         if db_flags & DBF_FAST > 0 {
             mdb_flags = mdb_flags | EnvironmentFlags::NO_SYNC;
         } else if db_flags & DBF_FASTEST > 0 {
-            mdb_flags = mdb_flags | EnvironmentFlags::NO_SYNC | EnvironmentFlags::WRITE_MAP | EnvironmentFlags::MAP_ASYNC;
+            mdb_flags = mdb_flags
+                | EnvironmentFlags::NO_SYNC
+                | EnvironmentFlags::WRITE_MAP
+                | EnvironmentFlags::MAP_ASYNC;
         } else if db_flags & DBF_RDONLY > 0 {
             mdb_flags = mdb_flags | EnvironmentFlags::READ_ONLY;
         } else if db_flags & DBF_SALVAGE > 0 {
             //TODO update lmdb version
-//            mdb_flags = mdb_flags | EnvironmentFlags::MDB_PREVSNAPSHOT;
+            //            mdb_flags = mdb_flags | EnvironmentFlags::MDB_PREVSNAPSHOT;
         }
-
 
         let mut env = Environment::new()
             .set_max_dbs(20)
@@ -218,7 +234,8 @@ impl<'env> BlockchainLMDB<'env> {
 
         //TODO resize
 
-        let mut txn = env.begin_rw_txn()
+        let mut txn = env
+            .begin_rw_txn()
             .expect("Failed to create a transaction for the db");
 
         let blocks = unsafe {
@@ -226,12 +243,18 @@ impl<'env> BlockchainLMDB<'env> {
                 .expect("Failed to open db handle for blocks")
         };
         let block_info = unsafe {
-            txn.create_db(Some(LMDB_BLOCK_INFO), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for block_info")
+            txn.create_db(
+                Some(LMDB_BLOCK_INFO),
+                DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED,
+            )
+            .expect("Failed to open db handle for block_info")
         };
         let block_heights = unsafe {
-            txn.create_db(Some(LMDB_BLOCK_HEIGHTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for block_heights")
+            txn.create_db(
+                Some(LMDB_BLOCK_HEIGHTS),
+                DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED,
+            )
+            .expect("Failed to open db handle for block_heights")
         };
         let txs = unsafe {
             txn.create_db(Some(LMDB_TXS), DatabaseFlags::INTEGER_KEY)
@@ -250,24 +273,36 @@ impl<'env> BlockchainLMDB<'env> {
                 .expect("Failed to open db handle for txs_prunable_hash")
         };
         let tx_indices = unsafe {
-            txn.create_db(Some(LMDB_TX_INDICES), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for tx_indices")
+            txn.create_db(
+                Some(LMDB_TX_INDICES),
+                DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED,
+            )
+            .expect("Failed to open db handle for tx_indices")
         };
         let tx_outputs = unsafe {
             txn.create_db(Some(LMDB_TX_OUTPUTS), DatabaseFlags::INTEGER_KEY)
                 .expect("Failed to open db handle for tx_outputs")
         };
         let output_txs = unsafe {
-            txn.create_db(Some(LMDB_OUTPUT_TXS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for output_txs")
+            txn.create_db(
+                Some(LMDB_OUTPUT_TXS),
+                DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED,
+            )
+            .expect("Failed to open db handle for output_txs")
         };
         let output_amounts = unsafe {
-            txn.create_db(Some(LMDB_OUTPUT_AMOUNTS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for output_amounts")
+            txn.create_db(
+                Some(LMDB_OUTPUT_AMOUNTS),
+                DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED,
+            )
+            .expect("Failed to open db handle for output_amounts")
         };
         let spent_keys = unsafe {
-            txn.create_db(Some(LMDB_SPENT_KEYS), DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED)
-                .expect("Failed to open db handle for spent_keys")
+            txn.create_db(
+                Some(LMDB_SPENT_KEYS),
+                DatabaseFlags::INTEGER_KEY | DatabaseFlags::DUP_SORT | DatabaseFlags::DUP_FIXED,
+            )
+            .expect("Failed to open db handle for spent_keys")
         };
         let txpool_meta = unsafe {
             txn.create_db(Some(LMDB_TXPOOL_META), DatabaseFlags::empty())
@@ -290,40 +325,39 @@ impl<'env> BlockchainLMDB<'env> {
                 .expect("Failed to open db handle for properties")
         };
 
-
-//        let txc_blocks = txn.open_rw_cursor(blocks).unwrap();
-//        let txc_block_info = txn.open_rw_cursor(block_info).unwrap();
-//        let txc_block_heights = txn.open_rw_cursor(block_heights).unwrap();
-//        let txc_txs = txn.open_rw_cursor(txs).unwrap();
-//        let txc_txs_pruned = txn.open_rw_cursor(txs_pruned).unwrap();
-//        let txc_txs_prunable = txn.open_rw_cursor(txs_prunable).unwrap();
-//        let txc_txs_prunable_hash = txn.open_rw_cursor(txs_prunable_hash).unwrap();
-//        let txc_tx_indices = txn.open_rw_cursor(tx_indices).unwrap();
-//        let txc_tx_outputs = txn.open_rw_cursor(tx_outputs).unwrap();
-//        let txc_output_txs = txn.open_rw_cursor(output_txs).unwrap();
-//        let txc_output_amounts = txn.open_rw_cursor(output_amounts).unwrap();
-//        let txc_spent_keys = txn.open_rw_cursor(spent_keys).unwrap();
-//        let txc_txpool_meta = txn.open_rw_cursor(txpool_meta).unwrap();
-//        let txc_txpool_blob = txn.open_rw_cursor(txpool_blob).unwrap();
-//        let txc_hf_versions = txn.open_rw_cursor(hf_versions).unwrap();
-//
-//        let cursors = MdbTxnCursors {
-//            txc_blocks,
-//            txc_block_info,
-//            txc_block_heights,
-//            txc_txs,
-//            txc_txs_pruned,
-//            txc_txs_prunable,
-//            txc_txs_prunable_hash,
-//            txc_tx_indices,
-//            txc_tx_outputs,
-//            txc_output_txs,
-//            txc_output_amounts,
-//            txc_spent_keys,
-//            txc_txpool_meta,
-//            txc_txpool_blob,
-//            txc_hf_versions,
-//        };
+        //        let txc_blocks = txn.open_rw_cursor(blocks).unwrap();
+        //        let txc_block_info = txn.open_rw_cursor(block_info).unwrap();
+        //        let txc_block_heights = txn.open_rw_cursor(block_heights).unwrap();
+        //        let txc_txs = txn.open_rw_cursor(txs).unwrap();
+        //        let txc_txs_pruned = txn.open_rw_cursor(txs_pruned).unwrap();
+        //        let txc_txs_prunable = txn.open_rw_cursor(txs_prunable).unwrap();
+        //        let txc_txs_prunable_hash = txn.open_rw_cursor(txs_prunable_hash).unwrap();
+        //        let txc_tx_indices = txn.open_rw_cursor(tx_indices).unwrap();
+        //        let txc_tx_outputs = txn.open_rw_cursor(tx_outputs).unwrap();
+        //        let txc_output_txs = txn.open_rw_cursor(output_txs).unwrap();
+        //        let txc_output_amounts = txn.open_rw_cursor(output_amounts).unwrap();
+        //        let txc_spent_keys = txn.open_rw_cursor(spent_keys).unwrap();
+        //        let txc_txpool_meta = txn.open_rw_cursor(txpool_meta).unwrap();
+        //        let txc_txpool_blob = txn.open_rw_cursor(txpool_blob).unwrap();
+        //        let txc_hf_versions = txn.open_rw_cursor(hf_versions).unwrap();
+        //
+        //        let cursors = MdbTxnCursors {
+        //            txc_blocks,
+        //            txc_block_info,
+        //            txc_block_heights,
+        //            txc_txs,
+        //            txc_txs_pruned,
+        //            txc_txs_prunable,
+        //            txc_txs_prunable_hash,
+        //            txc_tx_indices,
+        //            txc_tx_outputs,
+        //            txc_output_txs,
+        //            txc_output_amounts,
+        //            txc_spent_keys,
+        //            txc_txpool_meta,
+        //            txc_txpool_blob,
+        //            txc_hf_versions,
+        //        };
         let t = txn.commit();
 
         let mut db = BlockchainLMDB {
@@ -369,7 +403,9 @@ impl<'env> BlockchainLMDB<'env> {
     }
 
     fn block_exists(self, h: &Hash, height: u64) -> Option<u64> {
-        let txn = self.env.begin_ro_txn()
+        let txn = self
+            .env
+            .begin_ro_txn()
             .expect("get read only transaction failed when check block exists");
         let cursor = txn.open_ro_cursor(self.block_heights).unwrap();
         let result = cursor.get(Some(&h.0[..]), None, MDB_GET_BOTH);
@@ -382,4 +418,3 @@ impl<'env> BlockchainLMDB<'env> {
         }
     }
 }
-

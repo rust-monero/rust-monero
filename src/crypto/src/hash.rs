@@ -7,4 +7,3 @@ impl Default for Hash {
         Hash([0; 32])
     }
 }
-
