@@ -3,8 +3,8 @@ use bytes::BytesMut;
 use crate::bucket_head::{
     BucketHead, LEVIN_PACKET_REQUEST, LEVIN_PACKET_RESPONSE, LEVIN_PROTOCOL_VER_1, LEVIN_SIGNATURE,
 };
-use crate::LevinError;
 use crate::section::Section;
+use crate::LevinError;
 
 pub struct Bucket {
     pub head: BucketHead,
