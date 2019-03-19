@@ -12,6 +12,9 @@ pub const LEVIN_PACKET_RESPONSE: u32 = 0x00000002;
 pub const LEVIN_PROTOCOL_VER_0: u32 = 0;
 pub const LEVIN_PROTOCOL_VER_1: u32 = 1;
 
+pub const LEVIN_BUCKET_HEAD_LENGTH:usize = 33;
+
+#[derive(Debug)]
 pub struct BucketHead {
     pub signature: u64,
     pub cb: u64,
@@ -33,7 +36,7 @@ impl BucketHead {
             flags: buf.get_u32_le(),
             protocol_version: buf.get_u32_le(),
         };
-
+        println!("{:?}", &bucket_head);
         if bucket_head.signature != LEVIN_SIGNATURE {
             return Err(LevinError::SignatureInvalid);
         }
@@ -53,7 +56,7 @@ impl BucketHead {
     }
 
     pub fn write(&self, buf: &mut BytesMut) {
-        buf.reserve(33);
+        buf.reserve(LEVIN_BUCKET_HEAD_LENGTH);
         buf.put_u64_le(self.signature);
         buf.put_u64_le(self.cb);
         if self.have_to_return_data {

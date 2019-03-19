@@ -276,7 +276,7 @@ impl Section {
         Ok(section)
     }
 
-    fn handshake_request() -> Section {
+    pub fn handshake_request() -> Section {
         let mut node_data = Section::new();
         node_data.add(
             String::from("local_time"),
@@ -359,6 +359,7 @@ mod tests {
     use crate::section::{Section, SectionValue};
 
     use super::bytes::{BytesMut, IntoBuf};
+    use crate::bucket::Bucket;
 
     #[test]
     fn it_works() {
@@ -444,6 +445,15 @@ mod tests {
     }
 
     #[test]
+    fn test_handshake() {
+        let s = Section::handshake_request();
+        let mut b = BytesMut::new();
+        s.write(&mut b);
+        println!("{:?}", &s);
+        println!("{:?}", b);
+    }
+
+    #[test]
     fn test_raw_size() {
         let a = 1;
         let mut b = BytesMut::new();
@@ -451,5 +461,13 @@ mod tests {
         let mut buf = b.into_buf();
         let ret = raw_size::read(&mut buf).unwrap();
         assert_eq!(ret, a);
+    }
+
+    #[test]
+    fn read_from_bytes() {
+        let bytes_array = b"\x08\tnode_data\x0c\x10\nlocal_time\x05D\xc4\x90\\\x00\x00\x00\x00\x07my_port\x06\x00\x00\x00\x00\nnetwork_id\n@\x120\xf1qa\x04Aa\x171\x00\x82\x16\xa1\xa1\x10\x07peer_id\x05AAAAAAAA\x0cpayload_data\x0c\x10\x15cumulative_difficulty\x05\x01\x00\x00\x00\x00\x00\x00\x00\x0ecurrent_height\x05\x01\x00\x00\x00\x00\x00\x00\x00\x06top_id\n\x80A\x80\x15\xbb\x9a\xe9\x82\xa1\x97]\xa7\xd7\x92w\xc2pW'\xa5h\x94\xba\x0f\xb2F\xad\xaa\xbb\x1fF2\xe3\x0btop_version\x08\x01";
+        let mut b = BytesMut::from(bytes_array);
+        let s = Section::read(&mut b.into_buf());
+        println!("{:?}", s);
     }
 }

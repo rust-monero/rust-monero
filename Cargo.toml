@@ -14,7 +14,8 @@ members = [
     "src/device",
     "src/ringct",
     "src/checkpoints",
-    "src/levin"
+    "src/levin",
+    "src/p2p"
 ]
 
 [dependencies]
@@ -27,5 +28,6 @@ device = {path = "src/device"}
 ringct = {path = "src/ringct"}
 checkpoints = {path = "src/checkpoints"}
 levin = {path = "src/levin"}
+p2p = {path = "src/p2p"}
 
 lmdb = "0.8.0"

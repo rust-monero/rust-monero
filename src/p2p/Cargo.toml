@@ -1,0 +1,10 @@
+[package]
+name = "p2p"
+version = "0.1.0"
+authors = ["LINEZH <huizhaoline@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tokio = "0.1.13"
+bytes = "0.4.12"
+levin = {path = "../levin"}
