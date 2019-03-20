@@ -3,8 +3,8 @@ use bytes::{BufMut, BytesMut};
 use crate::bucket_head::{
     BucketHead, LEVIN_PACKET_REQUEST, LEVIN_PACKET_RESPONSE, LEVIN_PROTOCOL_VER_1, LEVIN_SIGNATURE,
 };
-use crate::LevinError;
 use crate::section::Section;
+use crate::LevinError;
 
 pub struct Bucket {
     pub head: BucketHead,
@@ -61,7 +61,6 @@ fn writeStorageBlockHeader(buf: &mut BytesMut) {
     buf.put_u32_le(PORTABLE_STORAGE_SIGNATUREB);
     buf.put_u8(PORTABLE_STORAGE_FORMAT_VER);
 }
-
 
 #[cfg(test)]
 mod tests {

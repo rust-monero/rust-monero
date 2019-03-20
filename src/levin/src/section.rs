@@ -360,6 +360,7 @@ mod tests {
 
     use super::bytes::{BytesMut, IntoBuf};
     use crate::bucket::Bucket;
+    use crate::bucket_head::BucketHead;
 
     #[test]
     fn it_works() {
@@ -465,11 +466,12 @@ mod tests {
 
     #[test]
     fn read_from_bytes() {
-        let mut bytes_array = b"\x08\tnode_data\x0c\x10\nlocal_time\x05\x1d\x12{\x95i\x01\0\0\nnetwork_id\n@\x120\xf1qa\x04Aa\x171\0\x82\x16\xa1\xa1\x10\x07my_port\x06\0\0\0\0\x07peer_id\x05\xae<E\x02\xf0Q\x90\xaf\x0cpayload_data\x0c\x10\x0ecurrent_height\x05\x01\0\0\0\0\0\0\0\x06top_id\n\x80A\x80\x15\xbb\x9a\xe9\x82\xa1\x97]\xa7\xd7\x92w\xc2pW'\xa5h\x94\xba\x0f\xb2F\xad\xaa\xbb\x1fF2\xe3\x15cumulative_difficulty\x05\x01\0\0\0\0\0\0\0\x0btop_version\n\x04\x01";
+        let mut bytes_array = b"\x01!\x01\x01\x01\x01\x01\x01\xe2\x00\x00\x00\x00\x00\x00\x00\x01\xe9\x03\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00";
 
-        let bytes_vec : Vec<u8> = bytes_array.iter().cloned().collect();
+        let bytes_vec: Vec<u8> = bytes_array.iter().cloned().collect();
         let mut b = BytesMut::from(bytes_vec);
-        let s = Section::read(&mut b.into_buf()).unwrap();
-        println!("{:?}", s);
+        //        let s = Section::read(&mut b.into_buf()).unwrap();
+        let mut head = BucketHead::read(&mut b.into_buf()).unwrap();
+        println!("{:?}", head);
     }
 }

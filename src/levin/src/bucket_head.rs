@@ -12,7 +12,7 @@ pub const LEVIN_PACKET_RESPONSE: u32 = 0x00000002;
 pub const LEVIN_PROTOCOL_VER_0: u32 = 0;
 pub const LEVIN_PROTOCOL_VER_1: u32 = 1;
 
-pub const LEVIN_BUCKET_HEAD_LENGTH:usize = 33;
+pub const LEVIN_BUCKET_HEAD_LENGTH: usize = 33;
 
 #[derive(Debug)]
 pub struct BucketHead {
