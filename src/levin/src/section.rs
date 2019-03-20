@@ -291,7 +291,7 @@ impl Section {
 
         let mut rng = rand::thread_rng();
         let peer_id = rng.gen::<u64>();
-        node_data.add(String::from("peer_id"), SectionValue::U64(peer_id));
+        node_data.add(String::from("peer_id"), SectionValue::U64(12312));
 
         //payload_data
         let mut payload_data = Section::new();
@@ -302,10 +302,7 @@ impl Section {
             hex::decode("418015bb9ae982a1975da7d79277c2705727a56894ba0fb246adaabb1f4632e3")
                 .unwrap();
         payload_data.add(String::from("top_id"), SectionValue::Bytes(genesis_hash));
-        payload_data.add(
-            String::from("top_version"),
-            SectionValue::Bytes(vec![1 as u8]),
-        );
+        payload_data.add(String::from("top_version"), SectionValue::U8(1));
 
         let mut section = Section::new();
         section.add(String::from("node_data"), SectionValue::Section(node_data));
@@ -466,12 +463,12 @@ mod tests {
 
     #[test]
     fn read_from_bytes() {
-        let mut bytes_array = b"\x01!\x01\x01\x01\x01\x01\x01\xe2\x00\x00\x00\x00\x00\x00\x00\x01\xe9\x03\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00";
+        let mut bytes_array = b"";
 
         let bytes_vec: Vec<u8> = bytes_array.iter().cloned().collect();
         let mut b = BytesMut::from(bytes_vec);
         //        let s = Section::read(&mut b.into_buf()).unwrap();
-        let mut head = BucketHead::read(&mut b.into_buf()).unwrap();
+        let mut head = Section::read(&mut b.into_buf()).unwrap();
         println!("{:?}", head);
     }
 }

@@ -46,6 +46,7 @@ impl Bucket {
 
     pub fn create_handshake_request() -> Bucket {
         let mut section = Section::handshake_request();
+        println!("handshake request section: {:?}", &section);
         Bucket::create_request(1001, &mut section).unwrap()
     }
 }

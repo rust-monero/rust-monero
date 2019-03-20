@@ -21,7 +21,11 @@ fn find_other_node() {
             let bucket = Bucket::create_handshake_request();
             let bucket_head = bucket.head;
             println!("bucket_head: {:?}", &bucket_head);
-            println!("bucket_body: {:?}", &bucket.body);
+            println!(
+                "bucket_body length: {:?}, detail:{:?}",
+                &bucket.body.len(),
+                &bucket.body
+            );
             let bucket_body = bucket.body;
             let mut b = BytesMut::new();
             BucketHead::write(&bucket_head, &mut b);
@@ -37,6 +41,7 @@ fn find_other_node() {
                     println!("new_head = {:?}", &new_head);
                     let size = new_head.unwrap().cb;
                     let mut bytes_array = vec![0 as u8; size as usize];
+                    thread::sleep_ms(3000);
                     reader.read_exact(&mut bytes_array);
                     let mut buf = BytesMut::from(bytes_array).into_buf();
                     println!("recieved buf: {:?}", &buf);
