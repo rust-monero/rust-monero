@@ -7,4 +7,5 @@ edition = "2018"
 [dependencies]
 tokio = "0.1.13"
 bytes = "0.4.12"
+log = "0.4.6"
 levin = {path = "../levin"}

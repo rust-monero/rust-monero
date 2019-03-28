@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate log;
+
 pub mod bucket;
 pub mod bucket_head;
 pub mod raw_size;

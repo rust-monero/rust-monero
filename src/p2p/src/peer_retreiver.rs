@@ -53,15 +53,6 @@ fn find_other_node() {
                 .map_err(|e| {
                     println!("error: {:?}", e);
                 });
-            //            match result {
-            //                Ok(_) => {
-            //                    println!("buf: {:?}", &buf);
-            //                }
-            //                Err(e) => {
-            //                    println!("error: {:?}", e);
-            //                }
-            //            }
-
             Ok(())
         })
         .map_err(|e| {

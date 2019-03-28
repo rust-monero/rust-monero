@@ -36,7 +36,7 @@ impl BucketHead {
             flags: buf.get_u32_le(),
             protocol_version: buf.get_u32_le(),
         };
-        println!("{:?}", &bucket_head);
+        debug!("{:?}", &bucket_head);
         if bucket_head.signature != LEVIN_SIGNATURE {
             return Err(LevinError::SignatureInvalid);
         }
