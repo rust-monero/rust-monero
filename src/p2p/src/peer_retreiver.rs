@@ -1,5 +1,6 @@
 use std::thread;
 use std::thread::Thread;
+use std::time::Duration;
 
 use bytes::Buf;
 use bytes::BytesMut;
@@ -31,7 +32,7 @@ fn find_other_node() {
             BucketHead::write(&bucket_head, &mut b);
             writer.write_all(&b.to_vec());
             writer.write_all(&bucket_body.to_vec());
-            thread::sleep_ms(3000);
+            thread::sleep(Duration::from_millis(3000));
             let mut buf = vec![0u8; LEVIN_BUCKET_HEAD_LENGTH];
             let result = reader
                 .read_exact(&mut buf)
