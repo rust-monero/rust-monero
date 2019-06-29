@@ -2,7 +2,7 @@ use std::thread;
 use std::thread::Thread;
 use std::time::Duration;
 
-use bytes::Buf;
+use bytes::{Buf, LittleEndian};
 use bytes::BytesMut;
 use bytes::IntoBuf;
 use tokio::net::TcpStream;
@@ -11,6 +11,7 @@ use tokio::prelude::*;
 use levin::bucket::Bucket;
 use levin::bucket_head::{BucketHead, LEVIN_BUCKET_HEAD_LENGTH};
 use levin::section::Section;
+use std::fs::read;
 
 fn find_other_node() {
     let addr = "116.88.75.110:18080".parse().unwrap();
@@ -41,9 +42,24 @@ fn find_other_node() {
                     let new_head = BucketHead::read(&mut head_bytes.into_buf());
                     println!("new_head = {:?}", &new_head);
                     let size = new_head.unwrap().cb;
-                    let mut bytes_array = vec![0 as u8; size as usize];
                     thread::sleep_ms(3000);
+                    let mut  a = vec![0 as u8; 4];
+                    reader.read_exact(&mut a);
+                    println!("{:?}", a);
+                    let mut  b = vec![0 as u8; 4];
+                    reader.read_exact(&mut b);
+                    println!("{:?}", b);
+                    let mut  c = vec![0 as u8; 1];
+                    reader.read_exact(&mut c);
+                    println!("{:?}", c);
+
+                    let mut bytes_array = vec![0 as u8; size as usize];
                     reader.read_exact(&mut bytes_array);
+                    println!("-------");
+                    for i in &bytes_array {
+                        println!("{}", i);
+                    }
+                    println!("-------");
                     let mut buf = BytesMut::from(bytes_array).into_buf();
                     println!("recieved buf: {:?}", &buf);
                     let section = Section::read(&mut buf);
